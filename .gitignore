@@ -1,0 +1,61 @@
+# --- SEGURIDAD Y SECRETOS (LO MÁS IMPORTANTE) ---
+# Evita que tus credenciales de Supabase y API Keys se filtren
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+auth.json
+
+# --- DEPENDENCIAS ---
+# Estas se descargan de nuevo con 'npm install', no se deben subir
+node_modules/
+/jspm_packages/
+.npm
+.eslintcache
+
+# --- COMPILACIÓN Y SALIDA ---
+# Archivos resultantes de la construcción del proyecto
+/build
+/dist
+/out
+/.next
+/temp
+/bin
+/obj
+
+# --- LOGS DE ERRORES Y DEBUG ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+logs
+*.log
+
+# --- CONFIGURACIÓN DE EDITORES (VS Code, Cursor, etc.) ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.history/
+
+# --- ARCHIVOS DE SISTEMA ---
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# --- HERRAMIENTAS DE PRUEBA Y COBERTURA ---
+/coverage
+/.nyc_output
+
+# --- DOCUMENTACIÓN GENERADA ---
+/docs/site/
