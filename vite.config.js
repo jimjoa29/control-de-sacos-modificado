@@ -1,12 +1,6 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/react-swc' // O el plugin que estés usando
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  plugins: [react()],
-  server: {
-    allowedHosts: [
-      'devserver-main--control-de-sacos-modificados.netlify.app',
-      'localhost'
-    ]
-  }
+    plugins: [react()],
 })
