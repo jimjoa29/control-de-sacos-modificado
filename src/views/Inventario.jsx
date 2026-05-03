@@ -2,39 +2,73 @@ import React, { useState, useEffect } from 'react';
 import { useInventory } from '../hooks/useInventory';
 import { supabase } from '../api/supabase';
 import Swal from 'sweetalert2';
+import { THEME } from '../constants/theme'; 
 
-// IMPORTAMOS LOS COMPONENTES QUE CREAMOS EN LA CARPETA COMPONENTS
 import MenuPrincipal from '../components/MenuPrincipal';
 import GestionOperadores from '../components/GestionOperadores';
 import FormularioSaco from '../components/FormularioSaco';
 import TablaInventario from '../components/TablaInventario';
+import ReporteMovimientos from '../components/ReporteMovimientos';
 
 const Inventario = () => {
     const {
-        items, operadores, loading, crearProducto,
-        actualizarStock, eliminarSaco, eliminarOperador, fetchOperadores, fetchInventory
+        items: itemsOriginales,
+        operadores, loading, crearProducto,
+        actualizarStock, eliminarSaco, eliminarOperador, 
+        editarProducto, crearOperador, fetchMovimientos 
     } = useInventory();
 
-    const [vista, setVista] = useState('menu');
-    const [rol, setRol] = useState('operador');
-    const [userEmail, setUserEmail] = useState('');
+    const [listaLocal, setListaLocal] = useState([]);
+    const [vista, setVista] = useState(''); 
+    const [rol, setRol] = useState(''); 
     const [nuevoSaco, setNuevoSaco] = useState({ codigo_id: '', descripcion: '', stock_total: 0 });
-    const [nuevoOp, setNuevoOp] = useState({ nombre: '', password: '' });
+    const [nuevoOp, setNuevoOp] = useState({ nombre: '', email: '', password: '', rol: 'operador' });
+    const [mostrarForm, setMostrarForm] = useState(false);
 
-    // Lógica para verificar quién entró (Admin o Operador)
+    const [hoverSalir, setHoverSalir] = useState(false);
+    const [hoverVolver, setHoverVolver] = useState(false);
+    const [hoverIngresar, setHoverIngresar] = useState(false);
+
+    const obtenerEstiloBoton = (isHovered, colorBase, esSecundario = false) => ({
+        minWidth: '170px',
+        padding: '12px 20px',
+        borderRadius: '10px',
+        border: 'none',
+        fontWeight: 'bold',
+        fontSize: '13px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        transition: 'all 0.3s ease',
+        background: isHovered ? (esSecundario ? '#e2e8f0' : colorBase) : (esSecundario ? '#edf2f7' : colorBase),
+        color: esSecundario ? THEME.colors.primary : 'white',
+        boxShadow: isHovered 
+            ? '0 6px 12px rgba(0,0,0,0.15)' 
+            : '0 4px 6px rgba(0,0,0,0.1)',
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        filter: !esSecundario && isHovered ? 'brightness(1.1)' : 'none'
+    });
+
+    useEffect(() => {
+        setListaLocal(itemsOriginales);
+    }, [itemsOriginales]);
+
     useEffect(() => {
         const checkRol = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                setUserEmail(user.email);
-                const { data } = await supabase
-                    .from('perfiles')
-                    .select('rol')
-                    .eq('id', user.id)
-                    .single();
-
-                if (data && data.rol === 'admin') {
-                    setRol('admin');
+                const { data, error } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+                if (data && !error) {
+                    const miRol = data.rol.toLowerCase().trim();
+                    setRol(miRol);
+                    
+                    if (miRol === 'admin' || miRol === 'admin_limitado') {
+                        setVista('menu');
+                    } else {
+                        setVista('sacos');
+                    }
                 } else {
                     setRol('operador');
                     setVista('sacos');
@@ -44,142 +78,145 @@ const Inventario = () => {
         checkRol();
     }, []);
 
-    // Función para borrar productos (Solo Admin)
-    const manejarBorradoSaco = async (item) => {
-        const { value: pass } = await Swal.fire({
-            title: 'SEGURIDAD DE ADMINISTRADOR',
-            text: `Joan, ingresa tu clave para eliminar: ${item.descripcion}`,
-            input: 'password',
-            inputPlaceholder: 'Tu contraseña',
-            showCancelButton: true,
-            confirmButtonColor: '#1a202c',
-        });
-
-        if (pass) {
-            const { error } = await supabase.auth.signInWithPassword({ email: userEmail, password: pass });
-            if (!error) {
-                await eliminarSaco(item.codigo_id);
-                Swal.fire('Eliminado', 'Producto borrado.', 'success');
-            } else {
-                Swal.fire('Error', 'Contraseña incorrecta.', 'error');
-            }
+    const manejarBorrarSaco = async (item) => {
+        if (rol?.toLowerCase().trim() !== 'admin') {
+            return Swal.fire('Acceso Denegado', 'No tienes permisos para eliminar sacos.', 'error');
         }
-    };
-
-    // Función para sumar o restar stock
-    const ajustarInventario = async (item, tipo) => {
-        const { value: cantidad } = await Swal.fire({
-            title: tipo === 'sumar' ? `Sumar a ${item.descripcion}` : `Restar de ${item.descripcion}`,
-            input: 'number',
-            inputLabel: `¿Cuánta cantidad desea ${tipo === 'sumar' ? 'ingresar' : 'retirar'}?`,
-            inputPlaceholder: '0',
-            showCancelButton: true,
-            confirmButtonText: 'Confirmar',
-            confirmButtonColor: tipo === 'sumar' ? '#3182ce' : '#e53e3e'
-        });
-
-        if (cantidad && parseInt(cantidad) > 0) {
-            const actual = parseInt(item.stock_total);
-            const cambio = parseInt(cantidad);
-            const nuevoTotal = tipo === 'sumar' ? actual + cambio : actual - cambio;
-
-            if (nuevoTotal < 0) {
-                return Swal.fire('Error', 'No puedes dejar el stock en negativo, Joan.', 'error');
-            }
-
-            await actualizarStock(item.codigo_id, nuevoTotal);
-            Swal.fire('Actualizado', `Nuevo stock total: ${nuevoTotal}`, 'success');
-        }
-    };
-
-    // Función para registrar nuevos operadores
-    const manejarRegistroOperador = async (e) => {
-        e.preventDefault();
-        const mail = `${nuevoOp.nombre.toLowerCase().trim()}@bodega.com`;
-        const { data, error } = await supabase.auth.signUp({ email: mail, password: nuevoOp.password });
-        if (!error && data.user) {
-            await supabase.from('perfiles').insert([{ id: data.user.id, email: nuevoOp.nombre, rol: 'operador' }]);
-            fetchOperadores();
-            setNuevoOp({ nombre: '', password: '' });
-            Swal.fire('¡Éxito!', 'Operador creado correctamente', 'success');
-        } else {
-            Swal.fire('Error', error.message, 'error');
-        }
-    };
-
-    // Función para eliminar acceso de operadores
-    const manejarBorradoOperador = (o) => {
-        Swal.fire({
-            title: '¿Eliminar acceso?',
-            text: `Se borrará a ${o.email} del sistema definitivamente.`,
+        const result = await Swal.fire({
+            title: '¿ELIMINAR?',
+            text: item.descripcion,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e53e3e',
-            confirmButtonText: 'Sí, borrar'
-        }).then((res) => {
-            if (res.isConfirmed) {
-                eliminarOperador(o.id);
-                Swal.fire('Eliminado', '', 'success');
-            }
+            confirmButtonColor: THEME.colors.danger
         });
+        if (result.isConfirmed) await eliminarSaco(item.codigo_id);
     };
 
-    if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Cargando...</div>;
+    const manejarEditarSaco = async (item) => {
+        const { value: desc } = await Swal.fire({
+            title: 'Editar Descripción',
+            input: 'text',
+            inputValue: item.descripcion,
+            showCancelButton: true
+        });
+        if (desc) await editarProducto(item.codigo_id, desc, item.codigo_id);
+    };
+
+    const manejarAjuste = async (item, tipo) => {
+        const { value: cant } = await Swal.fire({
+            title: tipo === 'sumar' ? 'Entrada de Stock' : 'Salida de Stock',
+            input: 'number',
+            showCancelButton: true
+        });
+        if (cant && parseInt(cant) > 0) {
+            const total = tipo === 'sumar' ? parseInt(item.stock_total) + parseInt(cant) : parseInt(item.stock_total) - parseInt(cant);
+            if (total < 0) return Swal.fire('Error', 'Stock insuficiente', 'error');
+            await actualizarStock(item.codigo_id, total, parseInt(cant), tipo === 'sumar' ? 'entrada' : 'salida', item.descripcion);
+        }
+    };
+
+    if (loading && !rol) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Cargando sistema...</div>;
+
+    const rolNormalizado = rol?.toLowerCase().trim();
+    const esAdminCualquiera = rolNormalizado === 'admin' || rolNormalizado === 'admin_limitado';
 
     return (
         <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-            <h2 style={{ textAlign: 'center', color: '#1a365d', marginBottom: '30px' }}>📦 Sistema Bodega</h2>
+            
+            <div style={{ 
+                marginBottom: '40px', background: '#f1f5f9', padding: '12px 25px', borderRadius: '15px',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+            }}>
+                <div style={{ fontWeight: 'bold', color: THEME.colors.text, fontSize: '14px' }}>
+                    ROL: {rol ? rol.toUpperCase().replace('_', ' ') : 'CARGANDO...'}
+                </div>
+                <button 
+                    onClick={() => supabase.auth.signOut()} 
+                    onMouseEnter={() => setHoverSalir(true)}
+                    onMouseLeave={() => setHoverSalir(false)}
+                    style={obtenerEstiloBoton(hoverSalir, THEME.colors.danger)}
+                >
+                    CERRAR SESIÓN
+                </button>
+            </div>
 
-            {/* --- VISTA: MENÚ PRINCIPAL --- */}
-            {vista === 'menu' && rol === 'admin' && (
-                <MenuPrincipal setVista={setVista} />
+            <h2 style={{ textAlign: 'center', color: THEME.colors.dark, marginBottom: '40px' }}>📦 Sistema Bodega</h2>
+
+            {/* SECCIÓN MENÚ PRINCIPAL */}
+            {vista === 'menu' && esAdminCualquiera && (
+                <MenuPrincipal setVista={setVista} rol={rol} />
             )}
-
-            {/* --- VISTA: GESTIÓN OPERADORES --- */}
-            {vista === 'op' && rol === 'admin' && (
-                <GestionOperadores 
-                    setVista={setVista} 
-                    nuevoOp={nuevoOp} 
-                    setNuevoOp={setNuevoOp} 
-                    alRegistrar={manejarRegistroOperador} 
-                    operadores={operadores} 
-                    alEliminar={manejarBorradoOperador} 
+            
+            {/* SECCIÓN REPORTES */}
+            {vista === 'reportes' && <ReporteMovimientos setVista={setVista} fetchMovimientos={fetchMovimientos} />}
+            
+            {/* SECCIÓN GESTIÓN OPERADORES */}
+            {vista === 'op' && rolNormalizado === 'admin' && (
+                <GestionOperadores
+                    setVista={setVista} nuevoOp={nuevoOp} setNuevoOp={setNuevoOp}
+                    operadores={operadores} miRol={rol} alEliminar={eliminarOperador} 
+                    alRegistrar={async (e) => {
+                        e.preventDefault();
+                        try {
+                            await crearOperador(nuevoOp.nombre, nuevoOp.email, nuevoOp.password, nuevoOp.rol);
+                            setNuevoOp({ nombre: '', email: '', password: '', rol: 'operador' });
+                            Swal.fire('Éxito', 'Usuario creado correctamente', 'success');
+                        } catch (err) {
+                            Swal.fire('Error', err.message, 'error');
+                        }
+                    }}
                 />
             )}
 
-            {/* --- VISTA: INVENTARIO DE SACOS --- */}
+            {/* SECCIÓN INVENTARIO DE SACOS: Solo se muestra si la vista es exactamente 'sacos' */}
             {vista === 'sacos' && (
                 <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        {rol === 'admin' ? (
-                            <button onClick={() => setVista('menu')} style={{ color: '#3182ce', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
-                                ← Volver al Menú
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                        {esAdminCualquiera ? (
+                            <button 
+                                onClick={() => setVista('menu')} 
+                                onMouseEnter={() => setHoverVolver(true)}
+                                onMouseLeave={() => setHoverVolver(false)}
+                                style={obtenerEstiloBoton(hoverVolver, '#edf2f7', true)}
+                            >
+                                ⬅ MENÚ PRINCIPAL
                             </button>
-                        ) : <span></span>}
-                        <button onClick={() => supabase.auth.signOut()} style={{ background: '#e53e3e', color: 'white', padding: '10px 20px', borderRadius: '10px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
-                            CERRAR SESIÓN
-                        </button>
+                        ) : <div style={{ width: '170px' }} />}
+                        
+                        {esAdminCualquiera && (
+                            <button
+                                onClick={() => setMostrarForm(!mostrarForm)}
+                                onMouseEnter={() => setHoverIngresar(true)}
+                                onMouseLeave={() => setHoverIngresar(false)}
+                                style={obtenerEstiloBoton(hoverIngresar, THEME.colors.primary)}
+                            >
+                                {mostrarForm ? '✖ CANCELAR' : '➕ INGRESAR SACO'}
+                            </button>
+                        )}
                     </div>
 
-                    {rol === 'admin' && (
-                        <FormularioSaco 
-                            nuevoSaco={nuevoSaco} 
-                            setNuevoSaco={setNuevoSaco} 
-                            alEnviar={async (e) => {
-                                e.preventDefault();
-                                await crearProducto(nuevoSaco);
-                                setNuevoSaco({ codigo_id: '', descripcion: '', stock_total: 0 });
-                                fetchInventory();
-                                Swal.fire('¡Éxito!', 'Producto añadido', 'success');
-                            }} 
-                        />
+                    {mostrarForm && esAdminCualquiera && (
+                        <div style={{ background: '#f7fafc', padding: '20px', borderRadius: '15px', marginBottom: '20px', border: `1px solid ${THEME.colors.border}` }}>
+                            <FormularioSaco 
+                                nuevoSaco={nuevoSaco} setNuevoSaco={setNuevoSaco} 
+                                alEnviar={async (e) => {
+                                    e.preventDefault();
+                                    await crearProducto(nuevoSaco);
+                                    setMostrarForm(false);
+                                    Swal.fire('¡Éxito!', 'Producto añadido', 'success');
+                                }}
+                            />
+                        </div>
                     )}
 
-                    <TablaInventario 
-                        items={items} 
-                        rol={rol} 
-                        alAjustar={ajustarInventario} 
-                        alBorrar={manejarBorradoSaco} 
+                    <TablaInventario
+                        items={listaLocal}
+                        rol={rol}
+                        alAjustar={manejarAjuste}
+                        alBorrar={manejarBorrarSaco}
+                        alEditar={manejarEditarSaco}
+                        setEstadoItems={setListaLocal}
                     />
                 </div>
             )}

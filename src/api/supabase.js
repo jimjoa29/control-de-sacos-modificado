@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Aquí traemos las llaves que guardaste en el archivo .env
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Verificamos que las llaves existan para que no falle el programa
 if (!supabaseUrl || !supabaseAnonKey) {
