@@ -32,8 +32,9 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
 
     return (
         <React.Fragment>
+            {/* ESPACIADOR MEJORADO: Aumentamos 5px más el espacio entre colores para facilitar la navegación */}
             {hayCambioDeColor && (
-                <tr style={{ height: esMovil ? '10px' : '20px' }}><td colSpan="3"></td></tr>
+                <tr style={{ height: esMovil ? '15px' : '25px' }}><td colSpan="3"></td></tr>
             )}
             <tr ref={setNodeRef} style={style}>
                 <td {...attributes} {...listeners} style={{
@@ -109,7 +110,6 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
 
     const [mostrarSubir, setMostrarSubir] = useState(false);
 
-    // Lógica de Scroll mejorada para móviles (usando requestAnimationFrame para eficiencia)
     useEffect(() => {
         const controlarScroll = () => {
             const posicion = window.pageYOffset || document.documentElement.scrollTop;
@@ -189,7 +189,6 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                 </table>
             </DndContext>
 
-            {/* BOTÓN FLOTANTE MEJORADO PARA MÓVIL */}
             {mostrarSubir && (
                 <button
                     onClick={irArriba}
@@ -205,7 +204,7 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                         border: 'none',
                         boxShadow: '0 5px 15px rgba(0,0,0,0.4)',
                         cursor: 'pointer',
-                        zIndex: 9999, // Asegura que esté por encima de todo
+                        zIndex: 9999,
                         fontSize: '24px',
                         display: 'flex',
                         alignItems: 'center',
