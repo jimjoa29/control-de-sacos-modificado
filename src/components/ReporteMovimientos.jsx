@@ -3,6 +3,10 @@ import { supabase } from '../api/supabase';
 import Swal from 'sweetalert2';
 import { THEME } from '../constants/theme';
 
+// IMPORTACIONES PARA EL PDF
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     const [historial, setHistorial] = useState([]);
     const [historialFiltrado, setHistorialFiltrado] = useState([]);
@@ -11,20 +15,19 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     const [fechaFiltro, setFechaFiltro] = useState(hoy);
     const [cargando, setCargando] = useState(true);
 
-    // 1. REF PARA BLOQUEAR RE-CARGAS: Esto evita que el efecto se dispare más de una vez
     const inicializado = useRef(false);
 
     const [hoverVolver, setHoverVolver] = useState(false);
     const [hoverConsultar, setHoverConsultar] = useState(false);
+    const [hoverPDF, setHoverPDF] = useState(false);
 
     const limpiarEmail = (email) => {
         if (!email) return "SISTEMA";
         return email.split('@')[0].toUpperCase();
     };
 
-    // 2. EFECTO REFORZADO: Solo carga datos si 'inicializado' es false
     useEffect(() => {
-        if (inicializado.current) return; // Si ya cargó, no hagas nada más
+        if (inicializado.current) return;
 
         const cargarDatosIniciales = async () => {
             try {
@@ -35,7 +38,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                     new Date(mov.fecha).toISOString().split('T')[0] === hoy
                 );
                 setHistorialFiltrado(filtrados);
-                inicializado.current = true; // Marcamos como cargado permanentemente
+                inicializado.current = true;
             } catch (error) {
                 console.error("Error:", error);
             } finally {
@@ -43,7 +46,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             }
         };
         cargarDatosIniciales();
-    }, [fetchMovimientos]); // Solo depende de la función, pero el Ref la bloquea
+    }, [fetchMovimientos]);
 
     const ejecutarConsulta = () => {
         if (fechaFiltro > hoy) {
@@ -63,7 +66,78 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
         }
     };
 
-    // Estilos de botones y sacos (se mantienen igual)...
+    // FUNCIÓN PARA EXPORTAR EL PDF CON LÓGICA DE COLORES (VERDE/ROJO/NEGRO)
+    const exportarPDFMovimientos = () => {
+        try {
+            const doc = new jsPDF();
+            const fechaActual = new Date().toLocaleDateString();
+            
+            doc.setFontSize(18);
+            doc.setTextColor(0, 0, 0); 
+            doc.text("Historial de Movimientos de Inventario", 14, 20);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Generado por el sistema el: ${fechaActual}`, 14, 28);
+            doc.text(`Fecha de consulta: ${fechaFiltro}`, 14, 34);
+
+            const tableColumn = ["Hora", "Producto", "Tipo", "Cant.", "Stock Final", "Operador"];
+            const tableRows = historialFiltrado.map(mov => [
+                new Date(mov.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                mov.descripcion.toUpperCase(),
+                mov.tipo === 'entrada' ? 'ENTRADA' : 'SALIDA',
+                mov.tipo === 'entrada' ? `+${mov.cantidad}` : `-${mov.cantidad}`,
+                mov.stock_resultante || '--',
+                limpiarEmail(mov.operador_email)
+            ]);
+
+            autoTable(doc, {
+                startY: 40,
+                head: [tableColumn],
+                body: tableRows,
+                theme: 'striped',
+                headStyles: { 
+                    fillColor: [41, 128, 185], 
+                    textColor: [255, 255, 255], 
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                styles: { 
+                    fontSize: 9, 
+                    cellPadding: 3 
+                },
+                // LÓGICA DE COLORES SEGÚN TIPO DE MOVIMIENTO
+                didParseCell: function (data) {
+                    // Columna "Cant." (índice 3): Verde para +, Rojo para -
+                    if (data.column.index === 3 && data.cell.section === 'body') {
+                        const valor = data.cell.text[0];
+                        if (valor.includes('+')) {
+                            data.cell.styles.textColor = [0, 128, 0]; // Verde
+                        } else if (valor.includes('-')) {
+                            data.cell.styles.textColor = [200, 0, 0]; // Rojo
+                        }
+                    }
+                    // Columna "Stock Final" (índice 4): Siempre Negro y Negrita
+                    if (data.column.index === 4 && data.cell.section === 'body') {
+                        data.cell.styles.textColor = [0, 0, 0]; // Negro
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                },
+                columnStyles: {
+                    0: { cellWidth: 22 },
+                    3: { halign: 'center' },
+                    4: { halign: 'center' }
+                },
+                margin: { top: 40 }
+            });
+
+            doc.save(`Movimientos_${fechaFiltro}.pdf`);
+        } catch (error) {
+            console.error("Error PDF:", error);
+            Swal.fire('Error', 'No se pudo generar el reporte PDF', 'error');
+        }
+    };
+
     const obtenerEstiloBoton = (isHovered, colorBase, esSecundario = false) => ({
         minWidth: '170px',
         padding: '12px 20px',
@@ -95,7 +169,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     };
 
     return (
-        <div style={{ padding: '10px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+        <div style={{ padding: '10px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif', paddingBottom: '100px' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '30px' }}>
                 <button
                     onClick={() => setVista('menu')}
@@ -176,6 +250,17 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
+                <button
+                    onClick={exportarPDFMovimientos}
+                    onMouseEnter={() => setHoverPDF(true)}
+                    onMouseLeave={() => setHoverPDF(false)}
+                    style={obtenerEstiloBoton(hoverPDF, '#2d3748')}
+                >
+                    📄 DESCARGAR PDF DIARIO
+                </button>
             </div>
         </div>
     );
