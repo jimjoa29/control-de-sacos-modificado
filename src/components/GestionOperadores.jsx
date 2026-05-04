@@ -1,15 +1,61 @@
 import React, { useState } from 'react';
 import { THEME } from '../constants/theme';
+import { supabase } from '../api/supabase'; 
+import Swal from 'sweetalert2';
 
 const GestionOperadores = ({
     setVista, nuevoOp, setNuevoOp, operadores,
-    miRol, alEliminar, alRegistrar
+    miRol, alEliminar, alRegistrar, fetchOperadores 
 }) => {
     const [mostrarForm, setMostrarForm] = useState(false);
     const [hoverVolver, setHoverVolver] = useState(false);
     const [hoverIngresar, setHoverIngresar] = useState(false);
 
-    // FUNCIÓN PARA ABREVIAR ROLES
+    // FUNCIÓN PARA ELIMINAR TOTALMENTE
+    const manejarEliminar = async (op) => {
+        const resultado = await Swal.fire({
+            title: '¿ELIMINAR OPERADOR?',
+            text: `Se eliminará permanentemente a: ${op.email} del sistema.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#c53030',
+            cancelButtonColor: '#2b6cb0',
+            confirmButtonText: 'SÍ, ELIMINAR',
+            cancelButtonText: 'CANCELAR'
+        });
+
+        if (resultado.isConfirmed) {
+            try {
+                // 1. ELIMINACIÓN EN LA TABLA DE LA BASE DE DATOS
+                const { error } = await supabase
+                    .from('perfiles') 
+                    .delete()
+                    .eq('id', op.id);
+
+                if (error) throw error;
+
+                // 2. ÉXITO
+                await Swal.fire({
+                    title: 'ELIMINADO',
+                    text: 'El usuario ha sido borrado totalmente.',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                
+                // 3. ACTUALIZACIÓN INMEDIATA DE LA PANTALLA
+                if (fetchOperadores) {
+                    await fetchOperadores(); 
+                } else if (alEliminar) {
+                    alEliminar(op);
+                }
+            } catch (error) {
+                console.error("Error al eliminar:", error);
+                Swal.fire('Error', 'No se pudo eliminar de la base de datos. Revisa los permisos RLS en la tabla perfiles.', 'error');
+            }
+        }
+    };
+
     const obtenerSigla = (rol) => {
         const r = rol?.toLowerCase().trim();
         if (r === 'admin') return 'ADT';
@@ -33,20 +79,13 @@ const GestionOperadores = ({
         background: isHovered ? (esSecundario ? '#e2e8f0' : colorBase) : (esSecundario ? '#edf2f7' : colorBase),
         color: esSecundario ? THEME.colors.primary : 'white',
         boxShadow: isHovered ? '0 6px 12px rgba(0,0,0,0.15)' : '0 4px 6px rgba(0,0,0,0.1)',
-        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-        filter: !esSecundario && isHovered ? 'brightness(1.1)' : 'none'
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)'
     });
 
     return (
-        <div style={{ marginTop: '20px', maxWidth: '800px', margin: '20px auto' }}>
+        <div style={{ marginTop: '20px', maxWidth: '800px', margin: '20px auto', padding: '0 10px', paddingBottom: '50px' }}>
 
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '35px',
-                gap: '10px'
-            }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '35px', gap: '10px' }}>
                 <button
                     onClick={() => setVista('menu')}
                     onMouseEnter={() => setHoverVolver(true)}
@@ -62,49 +101,40 @@ const GestionOperadores = ({
                     onMouseLeave={() => setHoverIngresar(false)}
                     style={{ ...obtenerEstiloBoton(hoverIngresar, THEME.colors.primary), minWidth: '160px', fontSize: '11px' }}
                 >
-                    {mostrarForm ? '✖ CANCELAR' : '➕ OPERADOR'}
+                    {mostrarForm ? '✖ CANCELAR' : '➕ REGISTRAR'}
                 </button>
             </div>
 
             {mostrarForm && (
-                <div style={{
-                    background: '#f7fafc',
-                    padding: '25px',
-                    borderRadius: '15px',
-                    marginBottom: '30px',
-                    border: `1px solid ${THEME.colors.border}`,
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
-                }}>
-                    <h3 style={{ marginTop: 0, color: THEME.colors.dark, fontSize: '18px', textAlign: 'center' }}>
-                        Registrar Nuevo Operador
-                    </h3>
+                <div style={{ background: '#f7fafc', padding: '25px', borderRadius: '15px', marginBottom: '30px', border: `1px solid ${THEME.colors.border}`, boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+                    <h3 style={{ textAlign: 'center', color: THEME.colors.dark, marginTop: 0 }}>Registro de Nuevo Operador</h3>
                     <form onSubmit={alRegistrar} style={{ display: 'grid', gap: '15px', maxWidth: '500px', margin: '0 auto' }}>
                         <input
                             type="text" placeholder="Nombre Completo" required
                             value={nuevoOp.nombre}
                             onChange={(e) => setNuevoOp({ ...nuevoOp, nombre: e.target.value })}
-                            style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.colors.border}` }}
+                            style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.colors.border}`, fontSize: '14px' }}
                         />
                         <input
                             type="email" placeholder="Correo Electrónico" required
                             value={nuevoOp.email}
                             onChange={(e) => setNuevoOp({ ...nuevoOp, email: e.target.value })}
-                            style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.colors.border}` }}
+                            style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.colors.border}`, fontSize: '14px' }}
                         />
                         <input
                             type="password" placeholder="Contraseña" required
                             value={nuevoOp.password}
                             onChange={(e) => setNuevoOp({ ...nuevoOp, password: e.target.value })}
-                            style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.colors.border}` }}
+                            style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.colors.border}`, fontSize: '14px' }}
                         />
                         <select
                             value={nuevoOp.rol}
                             onChange={(e) => setNuevoOp({ ...nuevoOp, rol: e.target.value })}
-                            style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.colors.border}`, background: 'white' }}
+                            style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.colors.border}`, background: 'white', fontSize: '14px' }}
                         >
                             <option value="operador">Operador (Solo Despacho)</option>
-                            <option value="admin_limitado">Administrador Limitado (Sin Gestión)</option>
-                            <option value="admin">Administrador Total</option>
+                            <option value="admin_limitado">Admin Limitado</option>
+                            <option value="admin">Admin Total</option>
                         </select>
                         <button type="submit" style={{ ...obtenerEstiloBoton(false, THEME.colors.primary), width: '100%', marginTop: '10px' }}>
                             GUARDAR OPERADOR
@@ -114,57 +144,32 @@ const GestionOperadores = ({
             )}
 
             <div style={{ background: 'white', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-                <div style={{
-                    background: THEME.colors.dark,
-                    color: 'white',
-                    padding: '12px 15px',
-                    display: 'grid',
-                    gridTemplateColumns: '2fr 0.8fr 1fr',
-                    fontWeight: 'bold',
-                    fontSize: '12px'
-                }}>
+                <div style={{ background: THEME.colors.dark, color: 'white', padding: '12px 15px', display: 'grid', gridTemplateColumns: '2fr 0.8fr 1.2fr', fontWeight: 'bold', fontSize: '12px' }}>
                     <div>EMAIL</div>
                     <div style={{ textAlign: 'center' }}>ROL</div>
                     <div style={{ textAlign: 'center' }}>ACCIÓN</div>
                 </div>
 
-                {operadores && operadores.length > 0 ? (
+                {operadores?.length > 0 ? (
                     operadores.map((op) => (
-                        <div key={op.id} style={{
-                            display: 'grid',
-                            gridTemplateColumns: '2fr 0.8fr 1fr',
-                            padding: '12px 15px',
-                            alignItems: 'center',
-                            borderBottom: `1px solid ${THEME.colors.border}`
-                        }}>
-                            <div style={{ fontSize: '11px', color: THEME.colors.dark, wordBreak: 'break-all', paddingRight: '5px' }}>
-                                {op.email}
-                            </div>
+                        <div key={op.id} style={{ display: 'grid', gridTemplateColumns: '2fr 0.8fr 1.2fr', padding: '15px 15px', alignItems: 'center', borderBottom: `1px solid ${THEME.colors.border}` }}>
+                            <div style={{ fontSize: '11px', color: THEME.colors.dark, wordBreak: 'break-all', paddingRight: '5px' }}>{op.email}</div>
                             <div style={{ textAlign: 'center' }}>
-                                <span style={{
-                                    background: op.rol === 'admin' ? '#e9d8fd' : (op.rol === 'admin_limitado' ? '#bee3f8' : '#e2e8f0'),
+                                <span style={{ 
+                                    background: op.rol === 'admin' ? '#e9d8fd' : (op.rol === 'admin_limitado' ? '#bee3f8' : '#e2e8f0'), 
                                     color: op.rol === 'admin' ? '#6b46c1' : (op.rol === 'admin_limitado' ? '#2b6cb0' : '#4a5568'),
-                                    padding: '2px 8px',
-                                    borderRadius: '4px',
+                                    padding: '2px 8px', 
+                                    borderRadius: '4px', 
                                     fontSize: '10px',
-                                    fontWeight: '900'
+                                    fontWeight: '900' 
                                 }}>
                                     {obtenerSigla(op.rol)}
                                 </span>
                             </div>
                             <div style={{ textAlign: 'center' }}>
                                 <button
-                                    onClick={() => alEliminar(op)}
-                                    style={{
-                                        background: '#fed7d7',
-                                        color: '#c53030',
-                                        border: 'none',
-                                        padding: '5px 10px',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontSize: '9px',
-                                        fontWeight: 'bold'
-                                    }}
+                                    onClick={() => manejarEliminar(op)}
+                                    style={{ background: '#fed7d7', color: '#c53030', border: 'none', padding: '10px 12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}
                                 >
                                     ELIMINAR
                                 </button>
@@ -173,21 +178,9 @@ const GestionOperadores = ({
                     ))
                 ) : (
                     <div style={{ padding: '30px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
-                        No se encontraron operadores registrados.
+                        No hay operadores registrados.
                     </div>
                 )}
-            </div>
-
-            {/* LEYENDA DE ABREVIACIONES */}
-            <div style={{
-                marginTop: '15px',
-                fontSize: '10px',
-                color: '#718096',
-                textAlign: 'center',
-                fontWeight: 'bold',
-                padding: '10px'
-            }}>
-                ADT: Admin Total | AL: Admin Limitado | OP: Operador
             </div>
         </div>
     );
