@@ -38,34 +38,35 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
             <tr ref={setNodeRef} style={style}>
                 <td {...attributes} {...listeners} style={{
                     padding: esMovil ? '8px 4px' : '12px 15px',
-                    display: 'flex', alignItems: 'center', gap: esMovil ? '4px' : '15px',
+                    display: 'flex', alignItems: 'center', gap: esMovil ? '6px' : '15px',
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo,
                     borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white,
                     cursor: esCualquierAdmin ? 'grab' : 'default'
                 }}>
                     <div style={{
-                        width: '8px', height: '30px', backgroundColor: colorMarca,
+                        width: '8px', height: '35px', backgroundColor: colorMarca,
                         borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0
                     }}></div>
                     <div style={{ overflow: 'hidden' }}>
                         <div style={{
-                            fontWeight: 'bold',
+                            fontWeight: '900', // MÁXIMO VOLUMEN
                             color: THEME.colors.dark,
-                            fontSize: esMovil ? '11px' : '14px',
+                            fontSize: esMovil ? '13px' : '16px', // MÁS GRANDE
+                            lineHeight: '1.2',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis'
                         }}>
                             {i.descripcion}
                         </div>
-                        <div style={{ fontSize: '9px', color: THEME.colors.muted }}>{i.codigo_id}</div>
+                        <div style={{ fontSize: '9px', color: THEME.colors.muted, marginTop: '2px' }}>{i.codigo_id}</div>
                     </div>
                 </td>
 
                 <td style={{
                     padding: esMovil ? '8px 2px' : '12px 15px',
                     textAlign: 'center', fontWeight: '900',
-                    fontSize: esMovil ? '13px' : THEME.fonts.lg,
+                    fontSize: esMovil ? '14px' : THEME.fonts.lg,
                     color: THEME.colors.dark, borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white
                 }}>
                     {i.stock_total}
@@ -105,7 +106,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                                     background: '#ecc94b', 
                                     color: THEME.colors.white, 
                                     border: 'none', 
-                                    padding: esMovil ? '3px 5px' : '6px 10px', // EDITAR MÁS PEQUEÑO
+                                    padding: esMovil ? '3px 5px' : '6px 10px',
                                     borderRadius: '6px', 
                                     cursor: 'pointer', 
                                     fontSize: esMovil ? '9px' : '13px' 
@@ -161,9 +162,9 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 4px', marginTop: '10px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
-                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '11px' : '14px', width: '40%' }}>Producto</th>
-                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', fontSize: esMovil ? '11px' : '14px', width: '15%' }}>Stock</th>
-                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '11px' : '14px', width: '45%' }}>Acción</th>
+                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '12px' : '14px', width: '40%' }}>Producto</th>
+                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', fontSize: esMovil ? '12px' : '14px', width: '15%' }}>Stock</th>
+                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '12px' : '14px', width: '45%' }}>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
