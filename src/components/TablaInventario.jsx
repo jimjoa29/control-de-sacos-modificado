@@ -2,7 +2,7 @@ import React from 'react';
 import { DndContext, closestCenter, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { THEME } from '../constants/theme'; 
+import { THEME } from '../constants/theme';
 
 const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obtenerColorSaco }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: i.codigo_id });
@@ -16,7 +16,6 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
     const colorAnterior = index > 0 ? obtenerColorSaco(items[index - 1].descripcion) : null;
     const hayCambioDeColor = colorAnterior && colorAnterior !== colorMarca;
 
-    // Detectar si es móvil para reducir tamaños
     const esMovil = window.innerWidth < 640;
 
     const style = {
@@ -38,8 +37,8 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
             )}
             <tr ref={setNodeRef} style={style}>
                 <td {...attributes} {...listeners} style={{
-                    padding: esMovil ? '8px' : '12px 15px', 
-                    display: 'flex', alignItems: 'center', gap: esMovil ? '8px' : '15px',
+                    padding: esMovil ? '8px 4px' : '12px 15px',
+                    display: 'flex', alignItems: 'center', gap: esMovil ? '4px' : '15px',
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo,
                     borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white,
                     cursor: esCualquierAdmin ? 'grab' : 'default'
@@ -49,69 +48,77 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                         borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0
                     }}></div>
                     <div style={{ overflow: 'hidden' }}>
-                        <div style={{ 
-                            fontWeight: 'bold', 
-                            color: THEME.colors.dark, 
-                            fontSize: esMovil ? '12px' : '14px',
+                        <div style={{
+                            fontWeight: 'bold',
+                            color: THEME.colors.dark,
+                            fontSize: esMovil ? '11px' : '14px',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis'
                         }}>
                             {i.descripcion}
                         </div>
-                        <div style={{ fontSize: '10px', color: THEME.colors.muted }}>{i.codigo_id}</div>
+                        <div style={{ fontSize: '9px', color: THEME.colors.muted }}>{i.codigo_id}</div>
                     </div>
                 </td>
 
                 <td style={{
-                    padding: esMovil ? '8px 4px' : '12px 15px', 
-                    textAlign: 'center', fontWeight: '900', 
-                    fontSize: esMovil ? '14px' : THEME.fonts.lg,
+                    padding: esMovil ? '8px 2px' : '12px 15px',
+                    textAlign: 'center', fontWeight: '900',
+                    fontSize: esMovil ? '13px' : THEME.fonts.lg,
                     color: THEME.colors.dark, borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white
                 }}>
                     {i.stock_total}
                 </td>
 
                 <td style={{
-                    padding: esMovil ? '8px' : '12px 15px', 
+                    padding: esMovil ? '8px 4px' : '12px 15px',
                     textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo,
                     borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white
                 }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: esMovil ? '4px' : '8px', 
+                    <div style={{
+                        display: 'flex',
+                        gap: esMovil ? '3px' : '8px',
                         justifyContent: 'center',
-                        flexWrap: esMovil ? 'wrap' : 'nowrap' // Se ajustan si no caben
+                        flexWrap: esMovil ? 'wrap' : 'nowrap'
                     }}>
                         {esCualquierAdmin && (
-                            <button 
-                                onClick={() => alAjustar(i, 'sumar')} 
-                                style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
+                            <button
+                                onClick={() => alAjustar(i, 'sumar')}
+                                style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 7px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '10px' : '13px' }}
                             >
                                 +
                             </button>
                         )}
-                        
-                        <button 
-                            onClick={() => alAjustar(i, 'restar')} 
-                            style={{ background: THEME.colors.danger, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
+
+                        <button
+                            onClick={() => alAjustar(i, 'restar')}
+                            style={{ background: THEME.colors.danger, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 7px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '10px' : '13px' }}
                         >
                             -
                         </button>
-                        
+
                         {esCualquierAdmin && (
-                            <button 
-                                onClick={() => alEditar(i)} 
-                                style={{ background: '#ecc94b', color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: esMovil ? '11px' : '13px' }}
+                            <button
+                                onClick={() => alEditar(i)}
+                                style={{ 
+                                    background: '#ecc94b', 
+                                    color: THEME.colors.white, 
+                                    border: 'none', 
+                                    padding: esMovil ? '3px 5px' : '6px 10px', // EDITAR MÁS PEQUEÑO
+                                    borderRadius: '6px', 
+                                    cursor: 'pointer', 
+                                    fontSize: esMovil ? '9px' : '13px' 
+                                }}
                             >
                                 ✏️
                             </button>
                         )}
-                        
+
                         {esAdminTotal && (
-                            <button 
-                                onClick={() => alBorrar(i)} 
-                                style={{ background: THEME.colors.dark, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
+                            <button
+                                onClick={() => alBorrar(i)}
+                                style={{ background: THEME.colors.dark, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 7px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '10px' : '13px' }}
                             >
                                 X
                             </button>
@@ -154,9 +161,9 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 4px', marginTop: '10px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
-                            <th style={{ padding: esMovil ? '10px 5px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '12px' : '14px', width: '45%' }}>Producto</th>
-                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', fontSize: esMovil ? '12px' : '14px', width: '20%' }}>Stock</th>
-                            <th style={{ padding: esMovil ? '10px 5px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '12px' : '14px', width: '35%' }}>Acción</th>
+                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '11px' : '14px', width: '40%' }}>Producto</th>
+                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', fontSize: esMovil ? '11px' : '14px', width: '15%' }}>Stock</th>
+                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '11px' : '14px', width: '45%' }}>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
