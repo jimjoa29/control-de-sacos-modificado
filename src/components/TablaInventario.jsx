@@ -3,8 +3,6 @@ import { DndContext, closestCenter, TouchSensor, MouseSensor, useSensor, useSens
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { THEME } from '../constants/theme';
-
-// IMPORTACIONES CORREGIDAS
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -38,30 +36,58 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
             )}
             <tr ref={setNodeRef} style={style}>
                 <td {...attributes} {...listeners} style={{
-                    padding: esMovil ? '8px 6px' : '12px 15px',
-                    display: 'flex', alignItems: 'center', gap: esMovil ? '6px' : '15px',
+                    padding: esMovil ? '10px 6px' : '12px 15px',
+                    display: 'flex', alignItems: 'center', gap: esMovil ? '8px' : '15px',
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo,
                     borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white,
                     cursor: esCualquierAdmin ? 'grab' : 'default',
                     width: '100%'
                 }}>
-                    <div style={{ width: '6px', height: '40px', backgroundColor: colorMarca, borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }}></div>
+                    <div style={{ width: '8px', height: '45px', backgroundColor: colorMarca, borderRadius: '4px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }}></div>
                     <div style={{ overflow: 'hidden', width: '100%' }}>
-                        <div style={{ fontWeight: '900', color: THEME.colors.dark, fontSize: esMovil ? '13px' : '16px', lineHeight: '1.1', whiteSpace: 'normal', wordBreak: 'break-word', textAlign: 'left' }}>
+                        <div style={{ 
+                            fontWeight: '900', 
+                            color: THEME.colors.dark, 
+                            fontSize: esMovil ? '14px' : '16px', 
+                            lineHeight: '1.2', 
+                            textAlign: 'left',
+                            textTransform: 'uppercase'
+                        }}>
                             {i.descripcion}
                         </div>
-                        <div style={{ fontSize: '9px', color: THEME.colors.muted, marginTop: '1px' }}>{i.codigo_id}</div>
+                        <div style={{ fontSize: '10px', color: THEME.colors.muted, marginTop: '2px' }}>{i.codigo_id}</div>
                     </div>
                 </td>
-                <td style={{ padding: '8px 2px', textAlign: 'center', fontWeight: '950', fontSize: esMovil ? '16px' : '20px', color: '#28a745', borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white }}>
+                <td style={{ 
+                    padding: '8px 2px', 
+                    textAlign: 'center', 
+                    fontWeight: '1000', 
+                    fontSize: esMovil ? '18px' : '22px', 
+                    color: '#28a745', 
+                    borderTop: bordeEstilo, 
+                    borderBottom: bordeEstilo, 
+                    background: THEME.colors.white 
+                }}>
                     {i.stock_total}
                 </td>
                 <td style={{ padding: '8px 4px', textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo, borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white }}>
-                    <div style={{ display: 'flex', gap: esMovil ? '4px' : '8px', justifyContent: 'center', flexWrap: 'nowrap' }}>
-                        {esCualquierAdmin && <button onClick={() => alAjustar(i, 'sumar')} style={{ background: THEME.colors.primary, color: 'white', border: 'none', padding: esMovil ? '5px 8px' : '6px 12px', borderRadius: '6px', fontWeight: 'bold' }}>+</button>}
-                        <button onClick={() => alAjustar(i, 'restar')} style={{ background: THEME.colors.danger, color: 'white', border: 'none', padding: esMovil ? '5px 8px' : '6px 12px', borderRadius: '6px', fontWeight: 'bold' }}>-</button>
-                        {esCualquierAdmin && <button onClick={() => alEditar(i)} style={{ background: '#ecc94b', color: 'white', border: 'none', padding: esMovil ? '5px 7px' : '6px 10px', borderRadius: '6px' }}>✏️</button>}
-                        {esAdminTotal && <button onClick={() => alBorrar(i)} style={{ background: THEME.colors.dark, color: 'white', border: 'none', padding: esMovil ? '5px 8px' : '6px 12px', borderRadius: '6px' }}>X</button>}
+                    <div style={{ display: 'flex', gap: esMovil ? '5px' : '8px', justifyContent: 'center', flexWrap: 'nowrap' }}>
+                        {esCualquierAdmin && (
+                            <button onClick={() => alAjustar(i, 'sumar')} style={{ background: THEME.colors.primary, color: 'white', border: 'none', padding: esMovil ? '8px 10px' : '10px 12px', borderRadius: '8px', fontWeight: 'bold' }}>+</button>
+                        )}
+                        {/* El botón de restar envía el objeto completo 'i' para que el modal sepa qué producto es */}
+                        <button onClick={() => alAjustar(i, 'restar')} style={{ background: THEME.colors.danger, color: 'white', border: 'none', padding: esMovil ? '8px 10px' : '10px 12px', borderRadius: '8px', fontWeight: 'bold' }}>-</button>
+                        {esCualquierAdmin && (
+                            <button onClick={() => alEditar(i)} style={{ background: '#ecc94b', color: 'white', border: 'none', padding: esMovil ? '8px 9px' : '10px 11px', borderRadius: '8px' }}>✏️</button>
+                        )}
+                        {esAdminTotal && (
+                            <button 
+                                onClick={() => alBorrar(i)} 
+                                style={{ background: THEME.colors.dark, color: 'white', border: 'none', padding: esMovil ? '8px 10px' : '10px 12px', borderRadius: '8px', fontWeight: 'bold' }}
+                            >
+                                X
+                            </button>
+                        )}
                     </div>
                 </td>
             </tr>
@@ -71,8 +97,8 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
 
 const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoItems }) => {
     const sensors = useSensors(
-        useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
-        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 10 } })
+        useSensor(MouseSensor, { activationConstraint: { distance: 15 } }),
+        useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 8 } })
     );
 
     const esMovil = window.innerWidth < 640;
@@ -93,12 +119,10 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
         try {
             const doc = new jsPDF();
             const fecha = new Date().toLocaleDateString();
-
-            // Configuración del título
             doc.setFontSize(18);
             doc.text("Reporte de Stock de Sacos", 14, 20);
             doc.setFontSize(10);
-            doc.text(`Generado por el sistema el: ${fecha}`, 14, 28);
+            doc.text(`Generado por: Joan | Fecha: ${fecha}`, 14, 28);
 
             const tableColumn = ["ID", "Descripción del Producto", "Stock"];
             const tableRows = items.map(item => [
@@ -107,7 +131,6 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                 item.stock_total
             ]);
 
-            // LLAMADA DIRECTA A AUTOTABLE
             autoTable(doc, {
                 startY: 35,
                 head: [tableColumn],
@@ -119,8 +142,8 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
 
             doc.save(`Inventario_${fecha}.pdf`);
         } catch (error) {
-            console.error("Error detallado:", error);
-            alert("Error crítico: " + error.message);
+            console.error("Error PDF:", error);
+            alert("Error al generar PDF");
         }
     };
 
@@ -148,12 +171,12 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
     return (
         <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto', padding: esMovil ? '0 5px 100px 5px' : '0 20px 100px 20px', position: 'relative' }}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 6px', marginTop: '10px', tableLayout: 'fixed' }}>
+                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', marginTop: '10px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: 'white' }}>
                         <tr>
-                            <th style={{ padding: '12px 8px', textAlign: 'left', borderRadius: '15px 0 0 15px', width: esMovil ? '48%' : '50%' }}>Producto</th>
-                            <th style={{ padding: '12px 2px', textAlign: 'center', width: esMovil ? '12%' : '15%' }}>Stock</th>
-                            <th style={{ padding: '12px 8px', textAlign: 'center', borderRadius: '0 15px 15px 0', width: esMovil ? '40%' : '35%' }}>Acciones</th>
+                            <th style={{ padding: '12px 8px', textAlign: 'left', borderRadius: '15px 0 0 15px', width: esMovil ? '50%' : '50%' }}>Producto</th>
+                            <th style={{ padding: '12px 2px', textAlign: 'center', width: esMovil ? '15%' : '15%' }}>Stock</th>
+                            <th style={{ padding: '12px 8px', textAlign: 'center', borderRadius: '0 15px 15px 0', width: esMovil ? '35%' : '35%' }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -165,23 +188,10 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                     </tbody>
                 </table>
             </DndContext>
-
+            
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
-                <button
-                    onClick={exportarInventarioPDF}
-                    style={{
-                        background: '#2d3748',
-                        color: 'white',
-                        padding: '12px 25px',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        border: 'none',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-                        width: esMovil ? '100%' : 'auto'
-                    }}
-                >
-                    📄 DESCARGAR REPORTE EN PDF
+                <button onClick={exportarInventarioPDF} style={{ background: '#2d3748', color: 'white', padding: '15px 25px', borderRadius: '12px', fontWeight: 'bold', border: 'none', width: esMovil ? '100%' : 'auto' }}>
+                    📄 DESCARGAR INVENTARIO ACTUAL
                 </button>
             </div>
 

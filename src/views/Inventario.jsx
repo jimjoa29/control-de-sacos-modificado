@@ -24,14 +24,15 @@ const Inventario = () => {
     const [nuevoSaco, setNuevoSaco] = useState({ codigo_id: '', descripcion: '', stock_total: 0 });
     const [nuevoOp, setNuevoOp] = useState({ nombre: '', email: '', password: '', rol: 'operador' });
     const [mostrarForm, setMostrarForm] = useState(false);
-    const [mostrarIrArriba, setMostrarIrArriba] = useState(false); // Estado para detectar scroll
+    const [mostrarIrArriba, setMostrarIrArriba] = useState(false); 
+
+    const AZUL_CORPORATIVO = '#2563eb';
 
     const [hoverSalir, setHoverSalir] = useState(false);
     const [hoverVolver, setHoverVolver] = useState(false);
     const [hoverIngresar, setHoverIngresar] = useState(false);
     const [hoverArriba, setHoverArriba] = useState(false);
 
-    // Detectar scroll para mostrar/ocultar el botón de subir
     useEffect(() => {
         const controlarScroll = () => {
             if (window.scrollY > 300) {
@@ -63,7 +64,7 @@ const Inventario = () => {
         gap: '8px',
         transition: 'all 0.3s ease',
         background: isHovered ? (esSecundario ? '#e2e8f0' : colorBase) : (esSecundario ? '#edf2f7' : colorBase),
-        color: esSecundario ? THEME.colors.primary : 'white',
+        color: esSecundario ? AZUL_CORPORATIVO : 'white',
         boxShadow: isHovered 
             ? '0 6px 12px rgba(0,0,0,0.15)' 
             : '0 4px 6px rgba(0,0,0,0.1)',
@@ -98,6 +99,99 @@ const Inventario = () => {
         checkRol();
     }, []);
 
+    // FUNCIÓN PARA SUBIR LA FOTO AL STORAGE DE SUPABASE
+    const subirFotoGuia = async (file) => {
+        try {
+            const fileName = `guia_${Date.now()}.jpg`;
+            const { data, error } = await supabase.storage
+                .from('comprobantes')
+                .upload(fileName, file);
+            
+            if (error) throw error;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('comprobantes')
+                .getPublicUrl(fileName);
+            
+            return publicUrl;
+        } catch (error) {
+            console.error("Error subiendo foto:", error);
+            return null;
+        }
+    };
+
+    const manejarAjuste = async (item, tipo) => {
+        let fotoURL = null;
+
+        const { value: formValues } = await Swal.fire({
+            title: tipo === 'sumar' ? 'Entrada de Stock' : 'Salida de Stock',
+            html: `
+                <div style="margin-bottom: 15px; font-size: 16px;">
+                    Producto: <b style="color: ${AZUL_CORPORATIVO}; text-transform: uppercase;">${item.descripcion}</b>
+                </div>
+                <input id="swal-input-cant" class="swal2-input" type="number" placeholder="Cantidad" style="margin-bottom: 10px;">
+                <input id="swal-input-desc" class="swal2-input" type="text" placeholder="Nota / Guía (Opcional)" style="margin-bottom: 10px;">
+                
+                <div style="margin-top: 10px;">
+                    <label for="foto-guia" style="display: block; padding: 10px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; color: ${THEME.colors.dark};">
+                        📸 TOMAR FOTO DE GUÍA
+                    </label>
+                    <input type="file" id="foto-guia" accept="image/*" capture="environment" style="display: none;" onchange="document.getElementById('preview-text').innerText = '✅ Foto capturada'">
+                    <p id="preview-text" style="font-size: 12px; margin-top: 5px; color: green;"></p>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'CONFIRMAR',
+            cancelButtonText: 'CANCELAR',
+            confirmButtonColor: AZUL_CORPORATIVO,
+            preConfirm: async () => {
+                const cant = document.getElementById('swal-input-cant').value;
+                const nota = document.getElementById('swal-input-desc').value;
+                const fotoFile = document.getElementById('foto-guia').files[0];
+
+                if (!cant || parseInt(cant) <= 0) {
+                    Swal.showValidationMessage('Ingresa una cantidad válida');
+                    return false;
+                }
+
+                // Si hay foto, la subimos antes de confirmar el movimiento
+                if (fotoFile) {
+                    Swal.showLoading();
+                    fotoURL = await subirFotoGuia(fotoFile);
+                }
+
+                return { 
+                    cantidad: parseInt(cant), 
+                    notaMovimiento: nota || (tipo === 'sumar' ? 'Entrada manual' : 'Salida manual'),
+                    urlComprobante: fotoURL
+                };
+            }
+        });
+
+        if (formValues) {
+            const { cantidad, notaMovimiento, urlComprobante } = formValues;
+            const nuevoTotal = tipo === 'sumar' 
+                ? parseInt(item.stock_total) + cantidad 
+                : parseInt(item.stock_total) - cantidad;
+
+            if (nuevoTotal < 0) {
+                return Swal.fire('Error', 'Stock insuficiente', 'error');
+            }
+
+            // Actualizamos enviando la URL de la foto a la base de datos
+            await actualizarStock(
+                item.codigo_id, 
+                nuevoTotal, 
+                cantidad, 
+                tipo === 'sumar' ? 'entrada' : 'salida', 
+                notaMovimiento,
+                urlComprobante // Nuevo parámetro para la base de datos
+            );
+        }
+    };
+
+    // ... Resto de funciones (manejarBorrarSaco, manejarEditarSaco) se mantienen igual que en el global anterior
     const manejarBorrarSaco = async (item) => {
         if (rol?.toLowerCase().trim() !== 'admin') {
             return Swal.fire('Acceso Denegado', 'No tienes permisos para eliminar sacos.', 'error');
@@ -117,22 +211,10 @@ const Inventario = () => {
             title: 'Editar Descripción',
             input: 'text',
             inputValue: item.descripcion,
-            showCancelButton: true
+            showCancelButton: true,
+            confirmButtonColor: AZUL_CORPORATIVO
         });
         if (desc) await editarProducto(item.codigo_id, desc, item.codigo_id);
-    };
-
-    const manejarAjuste = async (item, tipo) => {
-        const { value: cant } = await Swal.fire({
-            title: tipo === 'sumar' ? 'Entrada de Stock' : 'Salida de Stock',
-            input: 'number',
-            showCancelButton: true
-        });
-        if (cant && parseInt(cant) > 0) {
-            const total = tipo === 'sumar' ? parseInt(item.stock_total) + parseInt(cant) : parseInt(item.stock_total) - parseInt(cant);
-            if (total < 0) return Swal.fire('Error', 'Stock insuficiente', 'error');
-            await actualizarStock(item.codigo_id, total, parseInt(cant), tipo === 'sumar' ? 'entrada' : 'salida', item.descripcion);
-        }
     };
 
     if (loading && !rol) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Cargando sistema...</div>;
@@ -143,7 +225,6 @@ const Inventario = () => {
     return (
         <div style={{ padding: '15px', maxWidth: '100%', width: '1000px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
             
-            {/* CABECERA: Con botón dinámico de "Subir" al lado de cerrar sesión */}
             <div style={{ 
                 marginBottom: '30px', background: '#f1f5f9', padding: '15px', borderRadius: '15px',
                 display: 'flex', flexDirection: window.innerWidth < 640 ? 'column' : 'row',
@@ -154,13 +235,12 @@ const Inventario = () => {
                 </div>
                 
                 <div style={{ display: 'flex', gap: '10px', width: window.innerWidth < 640 ? '100%' : 'auto', flexDirection: window.innerWidth < 640 ? 'column' : 'row' }}>
-                    {/* Botón Volver Arriba (Solo aparece si hay scroll) */}
                     {mostrarIrArriba && (
                         <button 
                             onClick={irArriba}
                             onMouseEnter={() => setHoverArriba(true)}
                             onMouseLeave={() => setHoverArriba(false)}
-                            style={obtenerEstiloBoton(hoverArriba, THEME.colors.primary, true)}
+                            style={obtenerEstiloBoton(hoverArriba, AZUL_CORPORATIVO, true)}
                         >
                             ⬆ SUBIR
                         </button>
@@ -190,7 +270,12 @@ const Inventario = () => {
                         try {
                             await crearOperador(nuevoOp.nombre, nuevoOp.email, nuevoOp.password, nuevoOp.rol);
                             setNuevoOp({ nombre: '', email: '', password: '', rol: 'operador' });
-                            Swal.fire('Éxito', 'Usuario creado correctamente', 'success');
+                            Swal.fire({
+                                title: 'Éxito',
+                                text: 'Usuario creado correctamente',
+                                icon: 'success',
+                                confirmButtonColor: AZUL_CORPORATIVO
+                            });
                         } catch (err) {
                             Swal.fire('Error', err.message, 'error');
                         }
@@ -208,7 +293,7 @@ const Inventario = () => {
                         ) : <div style={{ width: '1px' }} />}
                         
                         {esAdminCualquiera && (
-                            <button onClick={() => setMostrarForm(!mostrarForm)} onMouseEnter={() => setHoverIngresar(true)} onMouseLeave={() => setHoverIngresar(false)} style={obtenerEstiloBoton(hoverIngresar, THEME.colors.primary)}>
+                            <button onClick={() => setMostrarForm(!mostrarForm)} onMouseEnter={() => setHoverIngresar(true)} onMouseLeave={() => setHoverIngresar(false)} style={obtenerEstiloBoton(hoverIngresar, AZUL_CORPORATIVO)}>
                                 {mostrarForm ? '✖ CANCELAR' : '➕ INGRESAR SACO'}
                             </button>
                         )}
@@ -222,7 +307,12 @@ const Inventario = () => {
                                     e.preventDefault();
                                     await crearProducto(nuevoSaco);
                                     setMostrarForm(false);
-                                    Swal.fire('¡Éxito!', 'Producto añadido', 'success');
+                                    Swal.fire({
+                                        title: '¡Éxito!',
+                                        text: 'Producto añadido',
+                                        icon: 'success',
+                                        confirmButtonColor: AZUL_CORPORATIVO
+                                    });
                                 }}
                             />
                         </div>

@@ -21,6 +21,11 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     const [hoverConsultar, setHoverConsultar] = useState(false);
     const [hoverPDF, setHoverPDF] = useState(false);
 
+    // COLOR AZUL CORPORATIVO
+    const AZUL_CORPORATIVO = '#2563eb';
+    // COLOR ICONO OSCURO
+    const ICONO_OSCURO = '#1a202c';
+
     const limpiarEmail = (email) => {
         if (!email) return "SISTEMA";
         return email.split('@')[0].toUpperCase();
@@ -66,7 +71,20 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
         }
     };
 
-    // FUNCIÓN PARA EXPORTAR EL PDF CON LÓGICA DE COLORES (VERDE/ROJO/NEGRO)
+    const verComprobante = (url) => {
+        if (!url) return;
+        
+        Swal.fire({
+            title: 'Evidencia de Movimiento',
+            imageUrl: url,
+            imageAlt: 'Foto de la guía de despacho',
+            confirmButtonText: 'CERRAR',
+            confirmButtonColor: AZUL_CORPORATIVO,
+            width: '90%',
+            imageWidth: '100%',
+        });
+    };
+
     const exportarPDFMovimientos = () => {
         try {
             const doc = new jsPDF();
@@ -78,7 +96,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             
             doc.setFontSize(10);
             doc.setTextColor(100, 100, 100);
-            doc.text(`Generado por el sistema el: ${fechaActual}`, 14, 28);
+            doc.text(`Generado por: JOAN | Sistema Bodega`, 14, 28);
             doc.text(`Fecha de consulta: ${fechaFiltro}`, 14, 34);
 
             const tableColumn = ["Hora", "Producto", "Tipo", "Cant.", "Stock Final", "Operador"];
@@ -97,7 +115,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 body: tableRows,
                 theme: 'striped',
                 headStyles: { 
-                    fillColor: [41, 128, 185], 
+                    fillColor: [37, 99, 235], 
                     textColor: [255, 255, 255], 
                     fontSize: 10,
                     fontStyle: 'bold'
@@ -106,20 +124,17 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                     fontSize: 9, 
                     cellPadding: 3 
                 },
-                // LÓGICA DE COLORES SEGÚN TIPO DE MOVIMIENTO
                 didParseCell: function (data) {
-                    // Columna "Cant." (índice 3): Verde para +, Rojo para -
                     if (data.column.index === 3 && data.cell.section === 'body') {
                         const valor = data.cell.text[0];
                         if (valor.includes('+')) {
-                            data.cell.styles.textColor = [0, 128, 0]; // Verde
+                            data.cell.styles.textColor = [0, 128, 0];
                         } else if (valor.includes('-')) {
-                            data.cell.styles.textColor = [200, 0, 0]; // Rojo
+                            data.cell.styles.textColor = [200, 0, 0];
                         }
                     }
-                    // Columna "Stock Final" (índice 4): Siempre Negro y Negrita
                     if (data.column.index === 4 && data.cell.section === 'body') {
-                        data.cell.styles.textColor = [0, 0, 0]; // Negro
+                        data.cell.styles.textColor = [0, 0, 0];
                         data.cell.styles.fontStyle = 'bold';
                     }
                 },
@@ -152,7 +167,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
         gap: '8px',
         transition: 'all 0.3s ease',
         background: esSecundario ? '#f1f5f9' : colorBase,
-        color: esSecundario ? '#2b6cb0' : 'white',
+        color: esSecundario ? AZUL_CORPORATIVO : 'white',
         boxShadow: isHovered ? '0 8px 15px rgba(0,0,0,0.15)' : '0 4px 6px rgba(0,0,0,0.1)',
         transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
     });
@@ -182,7 +197,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             </div>
 
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <h3 style={{ color: THEME.colors.dark, fontWeight: 'bold' }}>📊 Historial y Stock Resultante</h3>
+                <h3 style={{ color: THEME.colors.dark, fontWeight: 'bold' }}>📊 Historial y Evidencias</h3>
             </div>
 
             <div style={{
@@ -208,7 +223,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                         onClick={ejecutarConsulta}
                         onMouseEnter={() => setHoverConsultar(true)}
                         onMouseLeave={() => setHoverConsultar(false)}
-                        style={obtenerEstiloBoton(hoverConsultar, THEME.colors.primary)}
+                        style={obtenerEstiloBoton(hoverConsultar, AZUL_CORPORATIVO)}
                     >
                         CONSULTAR
                     </button>
@@ -219,10 +234,10 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
-                            <th style={{ padding: '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: '12px', width: '40%' }}>Producto / Hora</th>
+                            <th style={{ padding: '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: '12px', width: '35%' }}>Producto / Hora</th>
                             <th style={{ padding: '15px', textAlign: 'center', fontSize: '12px', width: '15%' }}>Mov.</th>
                             <th style={{ padding: '15px', textAlign: 'center', fontSize: '12px', width: '20%' }}>Stock Final</th>
-                            <th style={{ padding: '15px', textAlign: 'right', borderRadius: '0 15px 15px 0', fontSize: '12px', width: '25%' }}>Op.</th>
+                            <th style={{ padding: '15px', textAlign: 'right', borderRadius: '0 15px 15px 0', fontSize: '12px', width: '30%' }}>Op. / Foto</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -243,8 +258,33 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                                 <td style={{ padding: '12px 5px', textAlign: 'center', borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, background: '#f8fafc' }}>
                                     <div style={{ fontWeight: '950', fontSize: '16px', color: '#28a745' }}>{mov.stock_resultante || '--'}</div>
                                 </td>
-                                <td style={{ padding: '12px 10px', textAlign: 'right', borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, borderRight: `1px solid ${THEME.colors.border}`, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white, color: THEME.colors.text, fontSize: '11px', fontWeight: 'bold' }}>
-                                    {limpiarEmail(mov.operador_email)}
+                                <td style={{ padding: '12px 10px', textAlign: 'right', borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, borderRight: `1px solid ${THEME.colors.border}`, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white, fontSize: '11px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
+                                        <span style={{ fontWeight: 'bold', color: THEME.colors.text }}>{limpiarEmail(mov.operador_email)}</span>
+                                        {/*        ICONO DE CÁMARA OSCURECIDO Y MEJORADO */}
+                                        {mov.comprobante_url ? (
+                                            <button 
+                                                onClick={() => verComprobante(mov.comprobante_url)}
+                                                style={{ 
+                                                    background: 'none', 
+                                                    border: 'none', 
+                                                    cursor: 'pointer', 
+                                                    fontSize: '20px', 
+                                                    padding: '4px',
+                                                    color: ICONO_OSCURO,
+                                                    filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))',
+                                                    transition: 'transform 0.2s ease'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                                title="Ver Guía de Despacho"
+                                            >
+                                                📸
+                                            </button>
+                                        ) : (
+                                            <span style={{ opacity: 0.15, fontSize: '20px', filter: 'grayscale(1)' }}>📸</span>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
