@@ -6,12 +6,17 @@ const GestionOperadores = ({
     miRol, alEliminar, alRegistrar
 }) => {
     const [mostrarForm, setMostrarForm] = useState(false);
-
-    // ESTADOS PARA EL EFECTO HOVER
     const [hoverVolver, setHoverVolver] = useState(false);
     const [hoverIngresar, setHoverIngresar] = useState(false);
 
-    // ESTILO ESTÁNDAR
+    // FUNCIÓN PARA ABREVIAR ROLES
+    const obtenerSigla = (rol) => {
+        const r = rol?.toLowerCase().trim();
+        if (r === 'admin') return 'ADT';
+        if (r === 'admin_limitado') return 'AL';
+        return 'OP';
+    };
+
     const obtenerEstiloBoton = (isHovered, colorBase, esSecundario = false) => ({
         minWidth: '170px',
         padding: '12px 20px',
@@ -27,28 +32,26 @@ const GestionOperadores = ({
         transition: 'all 0.3s ease',
         background: isHovered ? (esSecundario ? '#e2e8f0' : colorBase) : (esSecundario ? '#edf2f7' : colorBase),
         color: esSecundario ? THEME.colors.primary : 'white',
-        boxShadow: isHovered
-            ? '0 6px 12px rgba(0,0,0,0.15)'
-            : '0 4px 6px rgba(0,0,0,0.1)',
+        boxShadow: isHovered ? '0 6px 12px rgba(0,0,0,0.15)' : '0 4px 6px rgba(0,0,0,0.1)',
         transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
         filter: !esSecundario && isHovered ? 'brightness(1.1)' : 'none'
     });
 
     return (
-        <div style={{ marginTop: '20px' }}>
+        <div style={{ marginTop: '20px', maxWidth: '800px', margin: '20px auto' }}>
 
-            {/* CONTENEDOR DE BOTONES ALINEADOS */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '35px'
+                marginBottom: '35px',
+                gap: '10px'
             }}>
                 <button
                     onClick={() => setVista('menu')}
                     onMouseEnter={() => setHoverVolver(true)}
                     onMouseLeave={() => setHoverVolver(false)}
-                    style={obtenerEstiloBoton(hoverVolver, '#edf2f7', true)}
+                    style={{ ...obtenerEstiloBoton(hoverVolver, '#edf2f7', true), minWidth: '140px', fontSize: '11px' }}
                 >
                     ⬅ MENÚ PRINCIPAL
                 </button>
@@ -57,9 +60,9 @@ const GestionOperadores = ({
                     onClick={() => setMostrarForm(!mostrarForm)}
                     onMouseEnter={() => setHoverIngresar(true)}
                     onMouseLeave={() => setHoverIngresar(false)}
-                    style={obtenerEstiloBoton(hoverIngresar, THEME.colors.primary)}
+                    style={{ ...obtenerEstiloBoton(hoverIngresar, THEME.colors.primary), minWidth: '160px', fontSize: '11px' }}
                 >
-                    {mostrarForm ? '✖ CANCELAR' : '➕ INGRESAR OPERADOR'}
+                    {mostrarForm ? '✖ CANCELAR' : '➕ OPERADOR'}
                 </button>
             </div>
 
@@ -110,45 +113,43 @@ const GestionOperadores = ({
                 </div>
             )}
 
-            {/* TABLA DE OPERADORES REGISTRADOS */}
             <div style={{ background: 'white', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
                 <div style={{
                     background: THEME.colors.dark,
                     color: 'white',
-                    padding: '15px',
+                    padding: '12px 15px',
                     display: 'grid',
-                    gridTemplateColumns: '2fr 1fr 1fr',
+                    gridTemplateColumns: '2fr 0.8fr 1fr',
                     fontWeight: 'bold',
-                    fontSize: '14px'
+                    fontSize: '12px'
                 }}>
-                    <div>NOMBRE / EMAIL</div>
+                    <div>EMAIL</div>
                     <div style={{ textAlign: 'center' }}>ROL</div>
                     <div style={{ textAlign: 'center' }}>ACCIÓN</div>
                 </div>
 
-                {/* MAPEADO DINÁMICO DE OPERADORES DESDE LA BASE DE DATOS */}
                 {operadores && operadores.length > 0 ? (
                     operadores.map((op) => (
                         <div key={op.id} style={{
                             display: 'grid',
-                            gridTemplateColumns: '2fr 1fr 1fr',
-                            padding: '15px',
+                            gridTemplateColumns: '2fr 0.8fr 1fr',
+                            padding: '12px 15px',
                             alignItems: 'center',
                             borderBottom: `1px solid ${THEME.colors.border}`
                         }}>
-                            <div style={{ fontSize: '14px', color: THEME.colors.dark }}>
+                            <div style={{ fontSize: '11px', color: THEME.colors.dark, wordBreak: 'break-all', paddingRight: '5px' }}>
                                 {op.email}
                             </div>
                             <div style={{ textAlign: 'center' }}>
                                 <span style={{
                                     background: op.rol === 'admin' ? '#e9d8fd' : (op.rol === 'admin_limitado' ? '#bee3f8' : '#e2e8f0'),
                                     color: op.rol === 'admin' ? '#6b46c1' : (op.rol === 'admin_limitado' ? '#2b6cb0' : '#4a5568'),
-                                    padding: '4px 12px',
-                                    borderRadius: '20px',
-                                    fontSize: '11px',
-                                    fontWeight: 'bold'
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    fontWeight: '900'
                                 }}>
-                                    {op.rol?.toUpperCase().replace('_', ' ')}
+                                    {obtenerSigla(op.rol)}
                                 </span>
                             </div>
                             <div style={{ textAlign: 'center' }}>
@@ -158,10 +159,10 @@ const GestionOperadores = ({
                                         background: '#fed7d7',
                                         color: '#c53030',
                                         border: 'none',
-                                        padding: '6px 15px',
-                                        borderRadius: '8px',
+                                        padding: '5px 10px',
+                                        borderRadius: '6px',
                                         cursor: 'pointer',
-                                        fontSize: '12px',
+                                        fontSize: '9px',
                                         fontWeight: 'bold'
                                     }}
                                 >
@@ -175,6 +176,18 @@ const GestionOperadores = ({
                         No se encontraron operadores registrados.
                     </div>
                 )}
+            </div>
+
+            {/* LEYENDA DE ABREVIACIONES */}
+            <div style={{
+                marginTop: '15px',
+                fontSize: '10px',
+                color: '#718096',
+                textAlign: 'center',
+                fontWeight: 'bold',
+                padding: '10px'
+            }}>
+                ADT: Admin Total | AL: Admin Limitado | OP: Operador
             </div>
         </div>
     );
