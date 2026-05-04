@@ -32,7 +32,6 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
 
     return (
         <React.Fragment>
-            {/* ESPACIADOR MEJORADO: Aumentamos 5px más el espacio entre colores para facilitar la navegación */}
             {hayCambioDeColor && (
                 <tr style={{ height: esMovil ? '15px' : '25px' }}><td colSpan="3"></td></tr>
             )}
@@ -81,12 +80,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                     textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo,
                     borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white
                 }}>
-                    <div style={{
-                        display: 'flex',
-                        gap: esMovil ? '4px' : '8px',
-                        justifyContent: 'center',
-                        flexWrap: 'nowrap'
-                    }}>
+                    <div style={{ display: 'flex', gap: esMovil ? '4px' : '8px', justifyContent: 'center', flexWrap: 'nowrap' }}>
                         {esCualquierAdmin && (
                             <button onClick={() => alAjustar(i, 'sumar')} style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '12px' : '14px' }}>+</button>
                         )}
@@ -105,31 +99,24 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
 };
 
 const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoItems }) => {
-    const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
-    const esMovil = window.innerWidth < 640;
+    const sensors = useSensors(
+        useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
+        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 10 } })
+    );
 
+    const esMovil = window.innerWidth < 640;
     const [mostrarSubir, setMostrarSubir] = useState(false);
 
     useEffect(() => {
         const controlarScroll = () => {
             const posicion = window.pageYOffset || document.documentElement.scrollTop;
-            if (posicion > 200) {
-                setMostrarSubir(true);
-            } else {
-                setMostrarSubir(false);
-            }
+            setMostrarSubir(posicion > 250);
         };
-
         window.addEventListener('scroll', controlarScroll, { passive: true });
         return () => window.removeEventListener('scroll', controlarScroll);
     }, []);
 
-    const irArriba = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    };
+    const irArriba = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
     const handleDragEnd = (event) => {
         const { active, over } = event;
@@ -142,7 +129,7 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
     };
 
     const obtenerColorSaco = (descripcion) => {
-        const desc = descripcion.toLowerCase();
+        const desc = descripcion?.toLowerCase() || "";
         if (desc.includes('rojo')) return '#feb2b2';
         if (desc.includes('amarillo')) return '#faf089';
         if (desc.includes('azul')) return '#90cdf4';
@@ -157,7 +144,8 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
             width: '100%',
             maxWidth: '800px',
             margin: '0 auto',
-            padding: esMovil ? '0 5px' : '0 20px',
+            // APLICAMOS EL ESPACIO ABAJO (80px) PARA QUE EL BOTÓN NO TAPE NADA
+            padding: esMovil ? '0 5px 80px 5px' : '0 20px 80px 20px',
             position: 'relative'
         }}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -193,23 +181,11 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                 <button
                     onClick={irArriba}
                     style={{
-                        position: 'fixed',
-                        bottom: '25px',
-                        right: esMovil ? '20px' : 'calc(50% - 380px)',
-                        width: '50px',
-                        height: '50px',
-                        borderRadius: '50%',
-                        background: THEME.colors.primary,
-                        color: 'white',
-                        border: 'none',
-                        boxShadow: '0 5px 15px rgba(0,0,0,0.4)',
-                        cursor: 'pointer',
-                        zIndex: 9999,
-                        fontSize: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        WebkitTapHighlightColor: 'transparent'
+                        position: 'fixed', bottom: '25px', right: esMovil ? '20px' : 'calc(50% - 380px)',
+                        width: '50px', height: '50px', borderRadius: '50%', background: THEME.colors.primary,
+                        color: 'white', border: 'none', boxShadow: '0 5px 15px rgba(0,0,0,0.4)',
+                        cursor: 'pointer', zIndex: 9999, fontSize: '24px', display: 'flex',
+                        alignItems: 'center', justifyContent: 'center', WebkitTapHighlightColor: 'transparent'
                     }}
                 >
                     ⬆
