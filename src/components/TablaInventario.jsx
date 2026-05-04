@@ -7,7 +7,6 @@ import { THEME } from '../constants/theme';
 const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obtenerColorSaco }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: i.codigo_id });
 
-    // NORMALIZACIÓN DE ROLES PARA PERMISOS
     const rolActual = rol ? rol.toLowerCase().trim() : '';
     const esAdminTotal = rolActual === 'admin';
     const esAdminLimitado = rolActual === 'admin_limitado';
@@ -16,6 +15,9 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
     const colorMarca = obtenerColorSaco(i.descripcion);
     const colorAnterior = index > 0 ? obtenerColorSaco(items[index - 1].descripcion) : null;
     const hayCambioDeColor = colorAnterior && colorAnterior !== colorMarca;
+
+    // Detectar si es móvil para reducir tamaños
+    const esMovil = window.innerWidth < 640;
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -32,43 +34,59 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
     return (
         <React.Fragment>
             {hayCambioDeColor && (
-                <tr style={{ height: '25px' }}><td colSpan="3"></td></tr>
+                <tr style={{ height: esMovil ? '10px' : '20px' }}><td colSpan="3"></td></tr>
             )}
             <tr ref={setNodeRef} style={style}>
                 <td {...attributes} {...listeners} style={{
-                    padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '15px',
+                    padding: esMovil ? '8px' : '12px 15px', 
+                    display: 'flex', alignItems: 'center', gap: esMovil ? '8px' : '15px',
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo,
                     borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white,
-                    cursor: esCualquierAdmin ? 'grab' : 'default' // El limitado también puede mover filas
+                    cursor: esCualquierAdmin ? 'grab' : 'default'
                 }}>
                     <div style={{
-                        width: '10px', height: '35px', backgroundColor: colorMarca,
+                        width: '8px', height: '30px', backgroundColor: colorMarca,
                         borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0
                     }}></div>
-                    <div>
-                        <div style={{ fontWeight: 'bold', color: THEME.colors.dark }}>{i.descripcion}</div>
-                        <div style={{ fontSize: THEME.fonts.xs, color: THEME.colors.muted }}>{i.codigo_id}</div>
+                    <div style={{ overflow: 'hidden' }}>
+                        <div style={{ 
+                            fontWeight: 'bold', 
+                            color: THEME.colors.dark, 
+                            fontSize: esMovil ? '12px' : '14px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>
+                            {i.descripcion}
+                        </div>
+                        <div style={{ fontSize: '10px', color: THEME.colors.muted }}>{i.codigo_id}</div>
                     </div>
                 </td>
 
                 <td style={{
-                    padding: '12px 15px', textAlign: 'center', fontWeight: '900', fontSize: THEME.fonts.lg,
+                    padding: esMovil ? '8px 4px' : '12px 15px', 
+                    textAlign: 'center', fontWeight: '900', 
+                    fontSize: esMovil ? '14px' : THEME.fonts.lg,
                     color: THEME.colors.dark, borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white
                 }}>
                     {i.stock_total}
                 </td>
 
                 <td style={{
-                    padding: '12px 15px', textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo,
+                    padding: esMovil ? '8px' : '12px 15px', 
+                    textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo,
                     borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white
                 }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        
-                        {/* SUMAR (+): Ahora el Admin Limitado tiene permiso total aquí */}
+                    <div style={{ 
+                        display: 'flex', 
+                        gap: esMovil ? '4px' : '8px', 
+                        justifyContent: 'center',
+                        flexWrap: esMovil ? 'wrap' : 'nowrap' // Se ajustan si no caben
+                    }}>
                         {esCualquierAdmin && (
                             <button 
                                 onClick={() => alAjustar(i, 'sumar')} 
-                                style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                                style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
                             >
                                 +
                             </button>
@@ -76,26 +94,24 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                         
                         <button 
                             onClick={() => alAjustar(i, 'restar')} 
-                            style={{ background: THEME.colors.danger, color: THEME.colors.white, border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                            style={{ background: THEME.colors.danger, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
                         >
                             -
                         </button>
                         
-                        {/* EDITAR (✏️): Ambos administradores pueden editar nombres */}
                         {esCualquierAdmin && (
                             <button 
                                 onClick={() => alEditar(i)} 
-                                style={{ background: '#ecc94b', color: THEME.colors.white, border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+                                style={{ background: '#ecc94b', color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: esMovil ? '11px' : '13px' }}
                             >
                                 ✏️
                             </button>
                         )}
                         
-                        {/* BORRAR (X): ÚNICAMENTE para el Administrador Total (Joan) */}
                         {esAdminTotal && (
                             <button 
                                 onClick={() => alBorrar(i)} 
-                                style={{ background: THEME.colors.dark, color: THEME.colors.white, border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                                style={{ background: THEME.colors.dark, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
                             >
                                 X
                             </button>
@@ -109,6 +125,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
 
 const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoItems }) => {
     const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
+    const esMovil = window.innerWidth < 640;
 
     const obtenerColorSaco = (descripcion) => {
         const desc = descripcion.toLowerCase();
@@ -123,7 +140,6 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
 
     const handleDragEnd = (event) => {
         const { active, over } = event;
-        // Solo permitimos reordenar si el usuario es administrador (Total o Limitado)
         const rolLimpio = rol ? rol.toLowerCase().trim() : '';
         if ((rolLimpio === 'admin' || rolLimpio === 'admin_limitado') && active && over && active.id !== over.id) {
             const oldIndex = items.findIndex((item) => item.codigo_id === active.id);
@@ -133,14 +149,14 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
     };
 
     return (
-        <div style={{ background: 'transparent' }}>
+        <div style={{ width: '100%', overflow: 'hidden' }}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 2px', marginTop: '10px' }}>
+                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 4px', marginTop: '10px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
-                            <th style={{ padding: '15px', textAlign: 'left', borderRadius: '15px 0 0 15px' }}>Producto</th>
-                            <th style={{ padding: '15px', textAlign: 'center' }}>Stock</th>
-                            <th style={{ padding: '15px', textAlign: 'center', borderRadius: '0 15px 15px 0' }}>Acción</th>
+                            <th style={{ padding: esMovil ? '10px 5px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '12px' : '14px', width: '45%' }}>Producto</th>
+                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', fontSize: esMovil ? '12px' : '14px', width: '20%' }}>Stock</th>
+                            <th style={{ padding: esMovil ? '10px 5px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '12px' : '14px', width: '35%' }}>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
