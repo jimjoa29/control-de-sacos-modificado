@@ -37,12 +37,12 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
             )}
             <tr ref={setNodeRef} style={style}>
                 <td {...attributes} {...listeners} style={{
-                    padding: esMovil ? '8px 2px' : '12px 15px', // Padding mínimo para ganar espacio
-                    display: 'flex', alignItems: 'center', gap: esMovil ? '4px' : '15px',
+                    padding: esMovil ? '8px 6px' : '12px 15px',
+                    display: 'flex', alignItems: 'center', gap: esMovil ? '6px' : '15px',
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo,
                     borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white,
                     cursor: esCualquierAdmin ? 'grab' : 'default',
-                    width: esMovil ? '55%' : 'auto' // MÁXIMO ANCHO PARA DESCRIPCIÓN
+                    width: '100%' // Ocupa el ancho asignado por la celda superior
                 }}>
                     <div style={{
                         width: '6px', height: '40px', backgroundColor: colorMarca,
@@ -52,10 +52,11 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                         <div style={{
                             fontWeight: '900', 
                             color: THEME.colors.dark,
-                            fontSize: esMovil ? '14px' : '18px',
+                            fontSize: esMovil ? '13px' : '16px',
                             lineHeight: '1.1',
                             whiteSpace: 'normal',
-                            wordBreak: 'break-word'
+                            wordBreak: 'break-word',
+                            textAlign: 'left'
                         }}>
                             {i.descripcion}
                         </div>
@@ -64,69 +65,36 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                 </td>
 
                 <td style={{
-                    padding: esMovil ? '8px 1px' : '12px 15px',
+                    padding: '8px 2px',
                     textAlign: 'center', 
                     fontWeight: '950', 
-                    fontSize: esMovil ? '15px' : '22px', 
+                    fontSize: esMovil ? '16px' : '20px', 
                     color: '#28a745', 
-                    borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white,
-                    width: esMovil ? '10%' : 'auto'
+                    borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white
                 }}>
                     {i.stock_total}
                 </td>
 
                 <td style={{
-                    padding: esMovil ? '8px 2px' : '12px 15px',
+                    padding: '8px 4px',
                     textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo,
-                    borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white,
-                    width: esMovil ? '35%' : 'auto'
+                    borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white
                 }}>
                     <div style={{
                         display: 'flex',
-                        gap: esMovil ? '2px' : '8px', // Espacio mínimo entre botones
+                        gap: esMovil ? '4px' : '8px',
                         justifyContent: 'center',
                         flexWrap: 'nowrap'
                     }}>
                         {esCualquierAdmin && (
-                            <button
-                                onClick={() => alAjustar(i, 'sumar')}
-                                style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 6px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
-                            >
-                                +
-                            </button>
+                            <button onClick={() => alAjustar(i, 'sumar')} style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '12px' : '14px' }}>+</button>
                         )}
-
-                        <button
-                            onClick={() => alAjustar(i, 'restar')}
-                            style={{ background: THEME.colors.danger, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 6px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
-                        >
-                            -
-                        </button>
-
+                        <button onClick={() => alAjustar(i, 'restar')} style={{ background: THEME.colors.danger, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '12px' : '14px' }}>-</button>
                         {esCualquierAdmin && (
-                            <button
-                                onClick={() => alEditar(i)}
-                                style={{ 
-                                    background: '#ecc94b', 
-                                    color: THEME.colors.white, 
-                                    border: 'none', 
-                                    padding: esMovil ? '4px 5px' : '6px 10px',
-                                    borderRadius: '6px', 
-                                    cursor: 'pointer', 
-                                    fontSize: esMovil ? '10px' : '13px' 
-                                }}
-                            >
-                                ✏️
-                            </button>
+                            <button onClick={() => alEditar(i)} style={{ background: '#ecc94b', color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 7px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: esMovil ? '11px' : '13px' }}>✏️</button>
                         )}
-
                         {esAdminTotal && (
-                            <button
-                                onClick={() => alBorrar(i)}
-                                style={{ background: THEME.colors.dark, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 6px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
-                            >
-                                X
-                            </button>
+                            <button onClick={() => alBorrar(i)} style={{ background: THEME.colors.dark, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '12px' : '14px' }}>X</button>
                         )}
                     </div>
                 </td>
@@ -139,6 +107,16 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
     const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
     const esMovil = window.innerWidth < 640;
 
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        const rolLimpio = rol ? rol.toLowerCase().trim() : '';
+        if ((rolLimpio === 'admin' || rolLimpio === 'admin_limitado') && active && over && active.id !== over.id) {
+            const oldIndex = items.findIndex((item) => item.codigo_id === active.id);
+            const newIndex = items.findIndex((item) => item.codigo_id === over.id);
+            if (setEstadoItems) setEstadoItems(arrayMove(items, oldIndex, newIndex));
+        }
+    };
+
     const obtenerColorSaco = (descripcion) => {
         const desc = descripcion.toLowerCase();
         if (desc.includes('rojo')) return '#feb2b2';
@@ -150,25 +128,27 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
         return 'transparent';
     };
 
-    const handleDragEnd = (event) => {
-        const { active, over } = event;
-        const rolLimpio = rol ? rol.toLowerCase().trim() : '';
-        if ((rolLimpio === 'admin' || rolLimpio === 'admin_limitado') && active && over && active.id !== over.id) {
-            const oldIndex = items.findIndex((item) => item.codigo_id === active.id);
-            const newIndex = items.findIndex((item) => item.codigo_id === over.id);
-            if (setEstadoItems) setEstadoItems(arrayMove(items, oldIndex, newIndex));
-        }
-    };
-
     return (
-        <div style={{ width: '100%', overflow: 'hidden' }}>
+        <div style={{ 
+            width: '100%', 
+            maxWidth: '800px', // Limita el ancho en PC para que no se vea "echado" a la derecha
+            margin: '0 auto',  // ESTA ES LA CLAVE: Centra todo el bloque en el viewport
+            padding: esMovil ? '0 5px' : '0 20px',
+            overflowX: 'hidden'
+        }}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 4px', marginTop: '10px', tableLayout: 'fixed' }}>
+                <table style={{ 
+                    width: '100%', 
+                    borderCollapse: 'separate', 
+                    borderSpacing: '0 6px', 
+                    marginTop: '10px', 
+                    tableLayout: 'fixed' 
+                }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
-                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '12px' : '14px', width: '55%' }}>Producto</th>
-                            <th style={{ padding: esMovil ? '10px 1px' : '15px', textAlign: 'center', fontSize: esMovil ? '12px' : '14px', width: '10%' }}>Stock</th>
-                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '12px' : '14px', width: '35%' }}>Acción</th>
+                            <th style={{ padding: '12px 8px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '12px' : '14px', width: esMovil ? '48%' : '50%' }}>Producto</th>
+                            <th style={{ padding: '12px 2px', textAlign: 'center', fontSize: esMovil ? '12px' : '14px', width: esMovil ? '12%' : '15%' }}>Stock</th>
+                            <th style={{ padding: '12px 8px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '12px' : '14px', width: esMovil ? '40%' : '35%' }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
