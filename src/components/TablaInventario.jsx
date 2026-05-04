@@ -41,7 +41,8 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                     display: 'flex', alignItems: 'center', gap: esMovil ? '6px' : '15px',
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo,
                     borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white,
-                    cursor: esCualquierAdmin ? 'grab' : 'default'
+                    cursor: esCualquierAdmin ? 'grab' : 'default',
+                    width: esMovil ? '40%' : 'auto'
                 }}>
                     <div style={{
                         width: '8px', height: '40px', backgroundColor: colorMarca,
@@ -51,7 +52,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                         <div style={{
                             fontWeight: '900', 
                             color: THEME.colors.dark,
-                            fontSize: esMovil ? '15px' : '18px', // FUENTE EN 15 PARA MÓVIL
+                            fontSize: esMovil ? '15px' : '18px',
                             lineHeight: '1.1',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
@@ -65,9 +66,12 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
 
                 <td style={{
                     padding: esMovil ? '8px 2px' : '12px 15px',
-                    textAlign: 'center', fontWeight: '900',
-                    fontSize: esMovil ? '14px' : THEME.fonts.lg,
-                    color: THEME.colors.dark, borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white
+                    textAlign: 'center', 
+                    fontWeight: '950', 
+                    fontSize: esMovil ? '17px' : '22px', 
+                    color: THEME.colors.primary, 
+                    borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white,
+                    width: esMovil ? '15%' : 'auto'
                 }}>
                     {i.stock_total}
                 </td>
@@ -75,7 +79,8 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                 <td style={{
                     padding: esMovil ? '8px 4px' : '12px 15px',
                     textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo,
-                    borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white
+                    borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white,
+                    width: esMovil ? '45%' : 'auto'
                 }}>
                     <div style={{
                         display: 'flex',
@@ -131,4 +136,57 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
     );
 };
 
-// ... Resto del componente TablaInventario (sin cambios)
+const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoItems }) => {
+    const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
+    const esMovil = window.innerWidth < 640;
+
+    const obtenerColorSaco = (descripcion) => {
+        const desc = descripcion.toLowerCase();
+        if (desc.includes('rojo')) return '#feb2b2';
+        if (desc.includes('amarillo')) return '#faf089';
+        if (desc.includes('azul')) return '#90cdf4';
+        if (desc.includes('verde')) return '#9ae6b4';
+        if (desc.includes('blanco')) return THEME.colors.white;
+        if (desc.includes('transparente')) return '#f0f4f8';
+        return 'transparent';
+    };
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        const rolLimpio = rol ? rol.toLowerCase().trim() : '';
+        if ((rolLimpio === 'admin' || rolLimpio === 'admin_limitado') && active && over && active.id !== over.id) {
+            const oldIndex = items.findIndex((item) => item.codigo_id === active.id);
+            const newIndex = items.findIndex((item) => item.codigo_id === over.id);
+            if (setEstadoItems) setEstadoItems(arrayMove(items, oldIndex, newIndex));
+        }
+    };
+
+    return (
+        <div style={{ width: '100%', overflow: 'hidden' }}>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 4px', marginTop: '10px', tableLayout: 'fixed' }}>
+                    <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
+                        <tr>
+                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '12px' : '14px', width: '40%' }}>Producto</th>
+                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', fontSize: esMovil ? '12px' : '14px', width: '15%' }}>Stock</th>
+                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '12px' : '14px', width: '45%' }}>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <SortableContext items={items.map(i => i.codigo_id)} strategy={verticalListSortingStrategy}>
+                            {items.map((i, index) => (
+                                <FilaEditable
+                                    key={i.codigo_id} i={i} index={index} items={items} rol={rol}
+                                    alAjustar={alAjustar} alBorrar={alBorrar} alEditar={alEditar}
+                                    obtenerColorSaco={obtenerColorSaco}
+                                />
+                            ))}
+                        </SortableContext>
+                    </tbody>
+                </table>
+            </DndContext>
+        </div>
+    );
+};
+
+export default TablaInventario;
