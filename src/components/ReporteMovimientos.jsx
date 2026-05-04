@@ -14,6 +14,12 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     const [hoverVolver, setHoverVolver] = useState(false);
     const [hoverConsultar, setHoverConsultar] = useState(false);
 
+    // FUNCIÓN PARA LIMPIAR EL EMAIL (SOLO EL NOMBRE ANTES DEL @)
+    const limpiarEmail = (email) => {
+        if (!email) return "SISTEMA";
+        return email.split('@')[0].toUpperCase();
+    };
+
     const obtenerEstiloBoton = (isHovered, colorBase, esSecundario = false) => ({
         minWidth: '170px',
         padding: '12px 20px',
@@ -116,38 +122,42 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             </div>
 
             <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
+                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
-                            <th style={{ padding: '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: THEME.fonts.sm }}>Producto / Hora</th>
-                            <th style={{ padding: '15px', textAlign: 'center', fontSize: THEME.fonts.sm }}>Movimiento</th>
-                            <th style={{ padding: '15px', textAlign: 'center', fontSize: THEME.fonts.sm }}>Stock Final</th>
-                            <th style={{ padding: '15px', textAlign: 'right', borderRadius: '0 15px 15px 0', fontSize: THEME.fonts.sm }}>Operador</th>
+                            <th style={{ padding: '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: '12px', width: '40%' }}>Producto / Hora</th>
+                            <th style={{ padding: '15px', textAlign: 'center', fontSize: '12px', width: '15%' }}>Mov.</th>
+                            <th style={{ padding: '15px', textAlign: 'center', fontSize: '12px', width: '20%' }}>Stock Final</th>
+                            <th style={{ padding: '15px', textAlign: 'right', borderRadius: '0 15px 15px 0', fontSize: '12px', width: '25%' }}>Op.</th>
                         </tr>
                     </thead>
                     <tbody>
                         {!cargando && historialFiltrado.map((mov) => (
                             <tr key={mov.id}>
-                                <td style={{ padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '15px', borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo, borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white }}>
-                                    <div style={{ width: '10px', height: '40px', backgroundColor: obtenerColorSaco(mov.descripcion), borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)' }}></div>
-                                    <div>
-                                        <div style={{ fontWeight: 'bold', color: THEME.colors.dark, fontSize: THEME.fonts.md }}>{mov.descripcion}</div>
-                                        <div style={{ fontSize: THEME.fonts.xs, color: THEME.colors.muted }}>{new Date(mov.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                <td style={{ padding: '12px 10px', display: 'flex', alignItems: 'center', gap: '10px', borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo, borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white }}>
+                                    <div style={{ width: '8px', height: '35px', backgroundColor: obtenerColorSaco(mov.descripcion), borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }}></div>
+                                    <div style={{ overflow: 'hidden' }}>
+                                        <div style={{ fontWeight: '900', color: THEME.colors.dark, fontSize: '13px', lineHeight: '1.2', whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                                            {mov.descripcion}
+                                        </div>
+                                        <div style={{ fontSize: '10px', color: THEME.colors.muted }}>
+                                            {new Date(mov.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
                                     </div>
                                 </td>
-                                <td style={{ padding: '12px 15px', textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white }}>
-                                    <div style={{ fontWeight: '900', fontSize: THEME.fonts.lg, color: mov.tipo === 'entrada' ? THEME.colors.success : THEME.colors.danger }}>
+                                <td style={{ padding: '12px 5px', textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white }}>
+                                    <div style={{ fontWeight: '900', fontSize: '14px', color: mov.tipo === 'entrada' ? THEME.colors.success : THEME.colors.danger }}>
                                         {mov.tipo === 'entrada' ? `+${mov.cantidad}` : `-${mov.cantidad}`}
                                     </div>
                                 </td>
-                                <td style={{ padding: '12px 15px', textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo, background: '#f8fafc' }}>
-                                    <div style={{ fontWeight: 'bold', fontSize: THEME.fonts.lg, color: THEME.colors.success }}>
+                                <td style={{ padding: '12px 5px', textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo, background: '#f8fafc' }}>
+                                    <div style={{ fontWeight: '950', fontSize: '16px', color: '#28a745' }}>
                                         {mov.stock_resultante || '--'}
                                     </div>
                                 </td>
-                                {/* MOSTRAR EL NOMBRE REAL GUARDADO SIN RECORTAR NADA */}
-                                <td style={{ padding: '12px 15px', textAlign: 'right', borderTop: bordeEstilo, borderBottom: bordeEstilo, borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white, color: THEME.colors.text, fontSize: THEME.fonts.xs, fontWeight: 'bold' }}>
-                                    {mov.operador_email ? mov.operador_email.toUpperCase() : 'SISTEMA'}
+                                <td style={{ padding: '12px 10px', textAlign: 'right', borderTop: bordeEstilo, borderBottom: bordeEstilo, borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white, color: THEME.colors.text, fontSize: '11px', fontWeight: 'bold' }}>
+                                    {/* USAMOS LA FUNCIÓN PARA LIMPIAR EL EMAIL */}
+                                    {limpiarEmail(mov.operador_email)}
                                 </td>
                             </tr>
                         ))}
