@@ -37,15 +37,15 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
             )}
             <tr ref={setNodeRef} style={style}>
                 <td {...attributes} {...listeners} style={{
-                    padding: esMovil ? '10px 4px' : '12px 15px',
-                    display: 'flex', alignItems: 'center', gap: esMovil ? '8px' : '15px',
+                    padding: esMovil ? '8px 2px' : '12px 15px', // Padding mínimo para ganar espacio
+                    display: 'flex', alignItems: 'center', gap: esMovil ? '4px' : '15px',
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo,
                     borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white,
                     cursor: esCualquierAdmin ? 'grab' : 'default',
-                    width: esMovil ? '55%' : 'auto' // AUMENTAMOS MÁS EL ESPACIO PARA LA DESCRIPCIÓN
+                    width: esMovil ? '55%' : 'auto' // MÁXIMO ANCHO PARA DESCRIPCIÓN
                 }}>
                     <div style={{
-                        width: '8px', height: '40px', backgroundColor: colorMarca,
+                        width: '6px', height: '40px', backgroundColor: colorMarca,
                         borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0
                     }}></div>
                     <div style={{ overflow: 'hidden', width: '100%' }}>
@@ -53,44 +53,44 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                             fontWeight: '900', 
                             color: THEME.colors.dark,
                             fontSize: esMovil ? '14px' : '18px',
-                            lineHeight: '1.2',
-                            whiteSpace: 'normal', // SE VE TODO EL TEXTO
+                            lineHeight: '1.1',
+                            whiteSpace: 'normal',
                             wordBreak: 'break-word'
                         }}>
                             {i.descripcion}
                         </div>
-                        <div style={{ fontSize: '10px', color: THEME.colors.muted, marginTop: '2px' }}>{i.codigo_id}</div>
+                        <div style={{ fontSize: '9px', color: THEME.colors.muted, marginTop: '1px' }}>{i.codigo_id}</div>
                     </div>
                 </td>
 
                 <td style={{
-                    padding: esMovil ? '8px 2px' : '12px 15px',
+                    padding: esMovil ? '8px 1px' : '12px 15px',
                     textAlign: 'center', 
                     fontWeight: '950', 
-                    fontSize: esMovil ? '16px' : '22px', // UN PUNTO MÁS CHICO COMO PEDISTE
-                    color: '#28a745', // COLOR VERDE
+                    fontSize: esMovil ? '15px' : '22px', 
+                    color: '#28a745', 
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white,
-                    width: esMovil ? '15%' : 'auto' // COLUMNA MÁS ANGOSTA PARA DAR ESPACIO AL TEXTO
+                    width: esMovil ? '10%' : 'auto'
                 }}>
                     {i.stock_total}
                 </td>
 
                 <td style={{
-                    padding: esMovil ? '8px 4px' : '12px 15px',
+                    padding: esMovil ? '8px 2px' : '12px 15px',
                     textAlign: 'center', borderTop: bordeEstilo, borderBottom: bordeEstilo,
                     borderRight: bordeEstilo, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white,
-                    width: esMovil ? '30%' : 'auto'
+                    width: esMovil ? '35%' : 'auto'
                 }}>
                     <div style={{
                         display: 'flex',
-                        gap: esMovil ? '4px' : '8px',
+                        gap: esMovil ? '2px' : '8px', // Espacio mínimo entre botones
                         justifyContent: 'center',
-                        flexWrap: 'wrap'
+                        flexWrap: 'nowrap'
                     }}>
                         {esCualquierAdmin && (
                             <button
                                 onClick={() => alAjustar(i, 'sumar')}
-                                style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
+                                style={{ background: THEME.colors.primary, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 6px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
                             >
                                 +
                             </button>
@@ -98,7 +98,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
 
                         <button
                             onClick={() => alAjustar(i, 'restar')}
-                            style={{ background: THEME.colors.danger, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
+                            style={{ background: THEME.colors.danger, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 6px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
                         >
                             -
                         </button>
@@ -110,7 +110,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                                     background: '#ecc94b', 
                                     color: THEME.colors.white, 
                                     border: 'none', 
-                                    padding: esMovil ? '4px 6px' : '6px 10px',
+                                    padding: esMovil ? '4px 5px' : '6px 10px',
                                     borderRadius: '6px', 
                                     cursor: 'pointer', 
                                     fontSize: esMovil ? '10px' : '13px' 
@@ -123,7 +123,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                         {esAdminTotal && (
                             <button
                                 onClick={() => alBorrar(i)}
-                                style={{ background: THEME.colors.dark, color: THEME.colors.white, border: 'none', padding: esMovil ? '5px 8px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
+                                style={{ background: THEME.colors.dark, color: THEME.colors.white, border: 'none', padding: esMovil ? '4px 6px' : '6px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: esMovil ? '11px' : '13px' }}
                             >
                                 X
                             </button>
@@ -166,9 +166,9 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 4px', marginTop: '10px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
-                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '12px' : '14px', width: '55%' }}>Producto</th>
-                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', fontSize: esMovil ? '12px' : '14px', width: '15%' }}>Stock</th>
-                            <th style={{ padding: esMovil ? '10px 4px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '12px' : '14px', width: '30%' }}>Acción</th>
+                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: esMovil ? '12px' : '14px', width: '55%' }}>Producto</th>
+                            <th style={{ padding: esMovil ? '10px 1px' : '15px', textAlign: 'center', fontSize: esMovil ? '12px' : '14px', width: '10%' }}>Stock</th>
+                            <th style={{ padding: esMovil ? '10px 2px' : '15px', textAlign: 'center', borderRadius: '0 15px 15px 0', fontSize: esMovil ? '12px' : '14px', width: '35%' }}>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
