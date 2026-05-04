@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../api/supabase';
 import Swal from 'sweetalert2';
 import { THEME } from '../constants/theme';
@@ -6,11 +6,13 @@ import { THEME } from '../constants/theme';
 const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     const [historial, setHistorial] = useState([]);
     const [historialFiltrado, setHistorialFiltrado] = useState([]);
-    
-    // Usamos una constante para el día de hoy para evitar cálculos innecesarios
+
     const hoy = new Date().toISOString().split('T')[0];
     const [fechaFiltro, setFechaFiltro] = useState(hoy);
     const [cargando, setCargando] = useState(true);
+
+    // 1. REF PARA BLOQUEAR RE-CARGAS: Esto evita que el efecto se dispare más de una vez
+    const inicializado = useRef(false);
 
     const [hoverVolver, setHoverVolver] = useState(false);
     const [hoverConsultar, setHoverConsultar] = useState(false);
@@ -20,18 +22,20 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
         return email.split('@')[0].toUpperCase();
     };
 
-    // 1. CARGA INICIAL: Solo se ejecuta UNA VEZ al montar el componente
+    // 2. EFECTO REFORZADO: Solo carga datos si 'inicializado' es false
     useEffect(() => {
+        if (inicializado.current) return; // Si ya cargó, no hagas nada más
+
         const cargarDatosIniciales = async () => {
             try {
                 const data = await fetchMovimientos();
                 setHistorial(data);
-                
-                // Mostramos hoy por defecto solo al cargar la primera vez
+
                 const filtrados = data.filter(mov =>
                     new Date(mov.fecha).toISOString().split('T')[0] === hoy
                 );
                 setHistorialFiltrado(filtrados);
+                inicializado.current = true; // Marcamos como cargado permanentemente
             } catch (error) {
                 console.error("Error:", error);
             } finally {
@@ -39,29 +43,27 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             }
         };
         cargarDatosIniciales();
-        // Quitamos 'hoy' y otras dependencias que causan el reinicio infinito
-    }, []); 
+    }, [fetchMovimientos]); // Solo depende de la función, pero el Ref la bloquea
 
-    // 2. FUNCIÓN DE CONSULTA: Ahora es robusta y no se reinicia sola
     const ejecutarConsulta = () => {
         if (fechaFiltro > hoy) {
             Swal.fire('Fecha Inválida', 'Escoge una fecha igual o anterior a hoy.', 'warning');
             return;
         }
 
-        // Filtramos sobre la base de datos que ya tenemos cargada
         const filtrados = historial.filter(mov => {
             const fechaMov = new Date(mov.fecha).toISOString().split('T')[0];
             return fechaMov === fechaFiltro;
         });
 
         setHistorialFiltrado(filtrados);
-        
+
         if (filtrados.length === 0) {
             Swal.fire('Sin registros', `No hay movimientos para el día ${fechaFiltro}`, 'info');
         }
     };
 
+    // Estilos de botones y sacos (se mantienen igual)...
     const obtenerEstiloBoton = (isHovered, colorBase, esSecundario = false) => ({
         minWidth: '170px',
         padding: '12px 20px',
@@ -94,7 +96,6 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
 
     return (
         <div style={{ padding: '10px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-            {/* ... Resto del JSX igual al anterior ... */}
             <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '30px' }}>
                 <button
                     onClick={() => setVista('menu')}
@@ -110,7 +111,17 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 <h3 style={{ color: THEME.colors.dark, fontWeight: 'bold' }}>📊 Historial y Stock Resultante</h3>
             </div>
 
-            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '15px', marginBottom: '30px', border: `1px solid ${THEME.colors.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+            <div style={{
+                background: '#f8fafc',
+                padding: '20px',
+                borderRadius: '15px',
+                marginBottom: '30px',
+                border: `1px solid ${THEME.colors.border}`,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '15px'
+            }}>
                 <label style={{ fontWeight: 'bold', color: THEME.colors.text }}>Seleccionar Fecha:</label>
                 <div style={{ display: 'flex', gap: '15px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <input
@@ -130,7 +141,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 </div>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
