@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndContext, closestCenter, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -42,7 +42,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, borderLeft: bordeEstilo,
                     borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white,
                     cursor: esCualquierAdmin ? 'grab' : 'default',
-                    width: '100%' // Ocupa el ancho asignado por la celda superior
+                    width: '100%'
                 }}>
                     <div style={{
                         width: '6px', height: '40px', backgroundColor: colorMarca,
@@ -50,7 +50,7 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
                     }}></div>
                     <div style={{ overflow: 'hidden', width: '100%' }}>
                         <div style={{
-                            fontWeight: '900', 
+                            fontWeight: '900',
                             color: THEME.colors.dark,
                             fontSize: esMovil ? '13px' : '16px',
                             lineHeight: '1.1',
@@ -66,10 +66,10 @@ const FilaEditable = ({ i, index, items, rol, alAjustar, alBorrar, alEditar, obt
 
                 <td style={{
                     padding: '8px 2px',
-                    textAlign: 'center', 
-                    fontWeight: '950', 
-                    fontSize: esMovil ? '16px' : '20px', 
-                    color: '#28a745', 
+                    textAlign: 'center',
+                    fontWeight: '950',
+                    fontSize: esMovil ? '16px' : '20px',
+                    color: '#28a745',
                     borderTop: bordeEstilo, borderBottom: bordeEstilo, background: THEME.colors.white
                 }}>
                     {i.stock_total}
@@ -107,6 +107,31 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
     const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
     const esMovil = window.innerWidth < 640;
 
+    // ESTADO PARA MOSTRAR/OCULTAR BOTÓN "SUBIR"
+    const [mostrarSubir, setMostrarSubir] = useState(false);
+
+    // LOGICA PARA DETECTAR SCROLL
+    useEffect(() => {
+        const controlarScroll = () => {
+            if (window.scrollY > 300) {
+                setMostrarSubir(true);
+            } else {
+                setMostrarSubir(false);
+            }
+        };
+
+        window.addEventListener('scroll', controlarScroll);
+        return () => window.removeEventListener('scroll', controlarScroll);
+    }, []);
+
+    // FUNCIÓN PARA VOLVER ARRIBA
+    const irArriba = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
+
     const handleDragEnd = (event) => {
         const { active, over } = event;
         const rolLimpio = rol ? rol.toLowerCase().trim() : '';
@@ -129,20 +154,20 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
     };
 
     return (
-        <div style={{ 
-            width: '100%', 
-            maxWidth: '800px', // Limita el ancho en PC para que no se vea "echado" a la derecha
-            margin: '0 auto',  // ESTA ES LA CLAVE: Centra todo el bloque en el viewport
+        <div style={{
+            width: '100%',
+            maxWidth: '800px',
+            margin: '0 auto',
             padding: esMovil ? '0 5px' : '0 20px',
-            overflowX: 'hidden'
+            position: 'relative' // Necesario para el botón flotante relativo al contenedor si se desea
         }}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <table style={{ 
-                    width: '100%', 
-                    borderCollapse: 'separate', 
-                    borderSpacing: '0 6px', 
-                    marginTop: '10px', 
-                    tableLayout: 'fixed' 
+                <table style={{
+                    width: '100%',
+                    borderCollapse: 'separate',
+                    borderSpacing: '0 6px',
+                    marginTop: '10px',
+                    tableLayout: 'fixed'
                 }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
@@ -164,6 +189,36 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                     </tbody>
                 </table>
             </DndContext>
+
+            {/* BOTÓN FLOTANTE PARA SUBIR */}
+            {mostrarSubir && (
+                <button
+                    onClick={irArriba}
+                    style={{
+                        position: 'fixed',
+                        bottom: '30px',
+                        right: esMovil ? '20px' : 'calc(50% - 380px)', // Ajustado para quedar cerca de la tabla en PC
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        background: THEME.colors.primary,
+                        color: 'white',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        cursor: 'pointer',
+                        zIndex: 2000,
+                        fontSize: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                >
+                    ⬆
+                </button>
+            )}
         </div>
     );
 };
