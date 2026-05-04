@@ -107,24 +107,23 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
     const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
     const esMovil = window.innerWidth < 640;
 
-    // ESTADO PARA MOSTRAR/OCULTAR BOTÓN "SUBIR"
     const [mostrarSubir, setMostrarSubir] = useState(false);
 
-    // LOGICA PARA DETECTAR SCROLL
+    // Lógica de Scroll mejorada para móviles (usando requestAnimationFrame para eficiencia)
     useEffect(() => {
         const controlarScroll = () => {
-            if (window.scrollY > 300) {
+            const posicion = window.pageYOffset || document.documentElement.scrollTop;
+            if (posicion > 200) {
                 setMostrarSubir(true);
             } else {
                 setMostrarSubir(false);
             }
         };
 
-        window.addEventListener('scroll', controlarScroll);
+        window.addEventListener('scroll', controlarScroll, { passive: true });
         return () => window.removeEventListener('scroll', controlarScroll);
     }, []);
 
-    // FUNCIÓN PARA VOLVER ARRIBA
     const irArriba = () => {
         window.scrollTo({
             top: 0,
@@ -159,7 +158,7 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
             maxWidth: '800px',
             margin: '0 auto',
             padding: esMovil ? '0 5px' : '0 20px',
-            position: 'relative' // Necesario para el botón flotante relativo al contenedor si se desea
+            position: 'relative'
         }}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <table style={{
@@ -190,31 +189,29 @@ const TablaInventario = ({ items, rol, alAjustar, alBorrar, alEditar, setEstadoI
                 </table>
             </DndContext>
 
-            {/* BOTÓN FLOTANTE PARA SUBIR */}
+            {/* BOTÓN FLOTANTE MEJORADO PARA MÓVIL */}
             {mostrarSubir && (
                 <button
                     onClick={irArriba}
                     style={{
                         position: 'fixed',
-                        bottom: '30px',
-                        right: esMovil ? '20px' : 'calc(50% - 380px)', // Ajustado para quedar cerca de la tabla en PC
+                        bottom: '25px',
+                        right: esMovil ? '20px' : 'calc(50% - 380px)',
                         width: '50px',
                         height: '50px',
                         borderRadius: '50%',
                         background: THEME.colors.primary,
                         color: 'white',
                         border: 'none',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        boxShadow: '0 5px 15px rgba(0,0,0,0.4)',
                         cursor: 'pointer',
-                        zIndex: 2000,
-                        fontSize: '20px',
+                        zIndex: 9999, // Asegura que esté por encima de todo
+                        fontSize: '24px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'all 0.3s ease'
+                        WebkitTapHighlightColor: 'transparent'
                     }}
-                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                 >
                     ⬆
                 </button>
