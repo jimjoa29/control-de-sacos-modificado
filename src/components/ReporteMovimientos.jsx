@@ -11,12 +11,12 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     const [historial, setHistorial] = useState([]);
     const [historialFiltrado, setHistorialFiltrado] = useState([]);
 
-    // --- CORRECCIÓN DE FECHA INICIAL (SANTIAGO DE CHILE) ---
+    // --- FECHA INICIAL SINCRONIZADA CON SANTIAGO ---
     const obtenerFechaChile = () => {
         const ahora = new Date();
-        const offsetChile = 4 * 60 * 60 * 1000; // 4 horas en milisegundos
+        const offsetChile = 4 * 60 * 60 * 1000; 
         const fechaLocal = new Date(ahora.getTime() - offsetChile);
-        return fechaLocal.toISOString().split('T')[0]; // Retorna YYYY-MM-DD correcto
+        return fechaLocal.toISOString().split('T')[0]; 
     };
 
     const [fechaFiltro, setFechaFiltro] = useState(obtenerFechaChile());
@@ -39,7 +39,6 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 const data = await fetchMovimientos();
                 setHistorial(data);
 
-                // Filtrar por la fecha corregida de hoy
                 const hoyChile = obtenerFechaChile();
                 const filtrados = data.filter(mov =>
                     mov.fecha.split('T')[0] === hoyChile
@@ -62,6 +61,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
         setHistorialFiltrado(filtrados);
     };
 
+    // FUNCIÓN PARA VISUALIZAR LA IMAGEN DEL COMPROBANTE
     const verComprobante = (url) => {
         if (!url) return;
         Swal.fire({
@@ -93,15 +93,8 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             </div>
 
             <div style={{
-                background: '#f8fafc',
-                padding: '15px',
-                borderRadius: '15px',
-                marginBottom: '20px',
-                border: `1px solid ${THEME.colors.border}`,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '12px'
+                background: '#f8fafc', padding: '15px', borderRadius: '15px', marginBottom: '20px',
+                border: `1px solid ${THEME.colors.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px'
             }}>
                 <label style={{ fontWeight: 'bold', color: THEME.colors.text }}>Fecha de Informe:</label>
                 <div style={{ display: 'flex', gap: '10px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -130,7 +123,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                     <tbody>
                         {historialFiltrado.map((mov) => (
                             <tr key={mov.id} style={{ height: '1px', background: 'white' }}>
-                                <td style={{ padding: '10px', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', borderLeft: '1px solid #eee', borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px', position: 'relative', zIndex: 5 }}>
+                                <td style={{ padding: '10px', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', borderLeft: '1px solid #eee', borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <div style={{ width: '6px', height: '30px', backgroundColor: obtenerColorSaco(mov.descripcion), borderRadius: '2px' }}></div>
                                         <div style={{ overflow: 'hidden' }}>
@@ -146,9 +139,11 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                                     {mov.stock_resultante}
                                 </td>
                                 <td style={{ paddingRight: '10px', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', borderTopRightRadius: '10px', borderBottomRightRadius: '10px' }}>
-                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
+                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
                                         <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{limpiarEmail(mov.operador_email)}</span>
-                                        {mov.comprobante_url && (
+                                        
+                                        {/* CÁMARA PARA VER EL COMPROBANTE DE LA NOTA */}
+                                        {mov.comprobante_url ? (
                                             <button 
                                                 type="button"
                                                 onClick={() => verComprobante(mov.comprobante_url)}
@@ -156,6 +151,8 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                                             >
                                                 📸
                                             </button>
+                                        ) : (
+                                            <span style={{ opacity: 0.1, fontSize: '20px', padding: '5px' }}>📸</span>
                                         )}
                                     </div>
                                 </td>
