@@ -25,6 +25,9 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
 
     const AZUL_CORPORATIVO = '#2563eb';
 
+    // ESTADOS PARA HOVER (Estilo visual)
+    const [hoverVolver, setHoverVolver] = useState(false);
+
     const limpiarEmail = (email) => {
         if (!email) return "SIS";
         const nombreBase = email.split('@')[0].toUpperCase();
@@ -61,7 +64,6 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
         setHistorialFiltrado(filtrados);
     };
 
-    // FUNCIÓN PARA VISUALIZAR LA IMAGEN DEL COMPROBANTE
     const verComprobante = (url) => {
         if (!url) return;
         Swal.fire({
@@ -86,9 +88,31 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
 
     return (
         <div style={{ padding: '5px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-            <div style={{ marginBottom: '20px' }}>
-                <button onClick={() => setVista('menu')} style={{ padding: '10px 15px', borderRadius: '10px', border: 'none', background: '#f1f5f9', cursor: 'pointer', fontWeight: 'bold' }}>
-                    ⬅ VOLVER
+            
+            {/* BOTÓN MENÚ PRINCIPAL CORREGIDO */}
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '20px' }}>
+                <button
+                    onClick={() => setVista('menu')}
+                    onMouseEnter={() => setHoverVolver(true)}
+                    onMouseLeave={() => setHoverVolver(false)}
+                    style={{
+                        padding: '10px 20px',
+                        borderRadius: '12px',
+                        border: 'none',
+                        fontWeight: 'bold',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.3s ease',
+                        background: '#f1f5f9',
+                        color: AZUL_CORPORATIVO, // Azul corporativo como pediste
+                        boxShadow: hoverVolver ? '0 8px 15px rgba(0,0,0,0.1)' : '0 4px 6px rgba(0,0,0,0.05)',
+                        transform: hoverVolver ? 'translateY(-2px)' : 'translateY(0)',
+                    }}
+                >
+                    ⬅ MENÚ PRINCIPAL
                 </button>
             </div>
 
@@ -142,7 +166,6 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                                     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
                                         <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{limpiarEmail(mov.operador_email)}</span>
                                         
-                                        {/* CÁMARA PARA VER EL COMPROBANTE DE LA NOTA */}
                                         {mov.comprobante_url ? (
                                             <button 
                                                 type="button"
