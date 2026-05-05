@@ -28,11 +28,6 @@ const Inventario = () => {
 
     const AZUL_CORPORATIVO = '#2563eb';
 
-    const [hoverSalir, setHoverSalir] = useState(false);
-    const [hoverVolver, setHoverVolver] = useState(false);
-    const [hoverIngresar, setHoverIngresar] = useState(false);
-    const [hoverArriba, setHoverArriba] = useState(false);
-
     useEffect(() => {
         const controlarScroll = () => {
             if (window.scrollY > 300) {
@@ -44,10 +39,6 @@ const Inventario = () => {
         window.addEventListener('scroll', controlarScroll);
         return () => window.removeEventListener('scroll', controlarScroll);
     }, []);
-
-    const irArriba = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
 
     const obtenerEstiloBoton = (isHovered, colorBase, esSecundario = false) => ({
         width: window.innerWidth < 640 ? '100%' : 'auto',
@@ -113,6 +104,19 @@ const Inventario = () => {
 
     const manejarAjuste = async (item, tipo) => {
         let fotoURL = null;
+
+        // --- BLOQUE DE CÁMARA CONDICIONAL ---
+        // Solo incluimos el HTML de la cámara si la acción es restar (Salida)
+        const htmlCamara = tipo === 'restar' ? `
+            <div style="margin-top: 10px;">
+                <label for="foto-guia" style="display: block; padding: 10px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; color: ${THEME.colors.dark}; font-size: 13px;">
+                    📸 TOMAR FOTO DE GUÍA
+                </label>
+                <input type="file" id="foto-guia" accept="image/*" capture="environment" style="display: none;" onchange="document.getElementById('preview-text').innerText = '✅ Foto capturada'">
+                <p id="preview-text" style="font-size: 11px; margin-top: 5px; color: green;"></p>
+            </div>
+        ` : '';
+
         const { value: formValues } = await Swal.fire({
             title: tipo === 'sumar' ? 'Entrada de Stock' : 'Salida de Stock',
             html: `
@@ -121,13 +125,7 @@ const Inventario = () => {
                 </div>
                 <input id="swal-input-cant" class="swal2-input" type="number" placeholder="Cantidad" style="margin-bottom: 10px; font-size: 14px;">
                 <input id="swal-input-desc" class="swal2-input" type="text" placeholder="Nota / Guía (Opcional)" style="margin-bottom: 10px; font-size: 14px;">
-                <div style="margin-top: 10px;">
-                    <label for="foto-guia" style="display: block; padding: 10px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; color: ${THEME.colors.dark}; font-size: 13px;">
-                        📸 TOMAR FOTO DE GUÍA
-                    </label>
-                    <input type="file" id="foto-guia" accept="image/*" capture="environment" style="display: none;" onchange="document.getElementById('preview-text').innerText = '✅ Foto capturada'">
-                    <p id="preview-text" style="font-size: 11px; margin-top: 5px; color: green;"></p>
-                </div>
+                ${htmlCamara}
             `,
             focusConfirm: false,
             showCancelButton: true,
@@ -136,15 +134,20 @@ const Inventario = () => {
             confirmButtonColor: AZUL_CORPORATIVO,
             preConfirm: async () => {
                 const cant = document.getElementById('swal-input-cant').value;
-                const fotoFile = document.getElementById('foto-guia').files[0];
+                const fotoInput = document.getElementById('foto-guia');
+                const fotoFile = fotoInput ? fotoInput.files[0] : null;
+
                 if (!cant || parseInt(cant) <= 0) {
                     Swal.showValidationMessage('Ingresa una cantidad válida');
                     return false;
                 }
+
+                // Subida de foto solo si existe el archivo (flujo de restar)
                 if (fotoFile) {
                     Swal.showLoading();
                     fotoURL = await subirFotoGuia(fotoFile);
                 }
+
                 return { 
                     cantidad: parseInt(cant), 
                     urlComprobante: fotoURL
@@ -162,8 +165,6 @@ const Inventario = () => {
                 return Swal.fire('Error', 'Stock insuficiente', 'error');
             }
 
-            // CORRECCIÓN: Ahora enviamos item.descripcion para que el historial 
-            // muestre el nombre del saco y no el texto manual.
             await actualizarStock(
                 item.codigo_id, 
                 nuevoTotal, 
@@ -176,6 +177,7 @@ const Inventario = () => {
     };
 
     const manejarBorrarSaco = async (item) => {
+        const rolNormalizado = rol?.toLowerCase().trim();
         if (rolNormalizado !== 'admin') return Swal.fire('Acceso Denegado', 'No tienes permisos.', 'error');
         const result = await Swal.fire({
             title: '¿ELIMINAR?',
