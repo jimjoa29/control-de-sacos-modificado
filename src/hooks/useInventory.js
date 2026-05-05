@@ -105,10 +105,12 @@ export const useInventory = () => {
             
             if (stockError) throw stockError;
 
-            // AJUSTE DE HORA LOCAL CHILE PARA AUDITORÍA
-            // Obtenemos la fecha exacta en Chile para evitar el desfase de medianoche
-            const ahoraChile = new Date().toLocaleString("en-US", {timeZone: "America/Santiago"});
-            const fechaAudit = new Date(ahoraChile).toISOString();
+            // --- CORRECCIÓN FINAL HORA SANTIAGO DE CHILE ---
+            const ahora = new Date();
+            // Calculamos el desfase de Chile (UTC-4) en milisegundos
+            const offset = 4 * 60 * 60 * 1000; 
+            // Restamos el offset y generamos un ISO manual que Supabase acepte como local
+            const fechaAudit = new Date(ahora.getTime() - offset).toISOString().replace('Z', '');
 
             const { error: movError } = await supabase
                 .from('movimientos')
@@ -120,7 +122,7 @@ export const useInventory = () => {
                     operador_email: perfil?.nombre || user?.email || 'Sistema',
                     stock_resultante: nuevoStock,
                     comprobante_url: urlComprobante,
-                    fecha: fechaAudit // <--- FECHA SINCRONIZADA CON SANTIAGO
+                    fecha: fechaAudit // <--- AHORA SÍ COINCIDE CON SANTIAGO
                 }]);
 
             if (movError) throw movError;

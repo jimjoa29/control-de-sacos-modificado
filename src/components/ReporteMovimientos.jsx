@@ -21,12 +21,12 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     const [hoverConsultar, setHoverConsultar] = useState(false);
     const [hoverPDF, setHoverPDF] = useState(false);
 
-    // COLOR AZUL CORPORATIVO
     const AZUL_CORPORATIVO = '#2563eb';
 
     const limpiarEmail = (email) => {
-        if (!email) return "SISTEMA";
-        return email.split('@')[0].toUpperCase();
+        if (!email) return "SIS";
+        const nombreBase = email.split('@')[0].toUpperCase();
+        return nombreBase.substring(0, 3);
     };
 
     useEffect(() => {
@@ -97,7 +97,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             doc.text(`Generado por: JOAN ALEJANDRO NARVÁEZ GARCÍA | Sistema Bodega`, 14, 28);
             doc.text(`Fecha de consulta: ${fechaFiltro}`, 14, 34);
 
-            const tableColumn = ["Hora", "Producto", "Tipo", "Cant.", "Stock Final", "Operador"];
+            const tableColumn = ["Hora", "Producto", "Tipo", "Cant.", "Stock Final", "Op."];
             const tableRows = historialFiltrado.map(mov => [
                 new Date(mov.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 mov.descripcion.toUpperCase(),
@@ -182,8 +182,8 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
     };
 
     return (
-        <div style={{ padding: '10px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif', paddingBottom: '100px' }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '30px' }}>
+        <div style={{ padding: '5px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif', paddingBottom: '100px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '20px' }}>
                 <button
                     onClick={() => setVista('menu')}
                     onMouseEnter={() => setHoverVolver(true)}
@@ -200,27 +200,25 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
 
             <div style={{
                 background: '#f8fafc',
-                padding: '20px',
+                padding: '15px',
                 borderRadius: '15px',
-                marginBottom: '30px',
+                marginBottom: '20px',
                 border: `1px solid ${THEME.colors.border}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '15px'
+                gap: '12px'
             }}>
-                <label style={{ fontWeight: 'bold', color: THEME.colors.text }}>Seleccionar Fecha:</label>
-                <div style={{ display: 'flex', gap: '15px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <label style={{ fontWeight: 'bold', color: THEME.colors.text }}>Fecha:</label>
+                <div style={{ display: 'flex', gap: '10px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <input
                         type="date"
                         value={fechaFiltro}
                         onChange={(e) => setFechaFiltro(e.target.value)}
-                        style={{ padding: '10px', borderRadius: '10px', border: `2px solid ${THEME.colors.border}`, fontSize: '14px', width: '180px' }}
+                        style={{ padding: '10px', borderRadius: '10px', border: `2px solid ${THEME.colors.border}`, fontSize: '14px', width: '160px' }}
                     />
                     <button
                         onClick={ejecutarConsulta}
-                        onMouseEnter={() => setHoverConsultar(true)}
-                        onMouseLeave={() => setHoverConsultar(false)}
                         style={obtenerEstiloBoton(hoverConsultar, AZUL_CORPORATIVO)}
                     >
                         CONSULTAR
@@ -232,61 +230,70 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: THEME.colors.white }}>
                         <tr>
-                            <th style={{ padding: '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: '12px', width: '35%' }}>Producto / Hora</th>
-                            <th style={{ padding: '15px', textAlign: 'center', fontSize: '12px', width: '15%' }}>Mov.</th>
-                            <th style={{ padding: '15px', textAlign: 'center', fontSize: '12px', width: '20%' }}>Stock Final</th>
-                            <th style={{ padding: '15px', textAlign: 'right', borderRadius: '0 15px 15px 0', fontSize: '12px', width: '30%' }}>Op.</th>
+                            <th style={{ padding: '12px 8px', textAlign: 'left', borderRadius: '12px 0 0 12px', fontSize: '11px', width: '40%' }}>Producto / Hora</th>
+                            <th style={{ padding: '12px 2px', textAlign: 'center', fontSize: '11px', width: '15%' }}>Mov.</th>
+                            <th style={{ padding: '12px 2px', textAlign: 'center', fontSize: '11px', width: '20%' }}>Stock F.</th>
+                            <th style={{ padding: '12px 8px', textAlign: 'right', borderRadius: '0 12px 12px 0', fontSize: '11px', width: '25%' }}>Op.</th>
                         </tr>
                     </thead>
                     <tbody>
                         {!cargando && historialFiltrado.map((mov) => (
-                            <tr key={mov.id}>
-                                <td style={{ padding: '12px 10px', display: 'flex', alignItems: 'center', gap: '10px', borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, borderLeft: `1px solid ${THEME.colors.border}`, borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', background: THEME.colors.white }}>
-                                    <div style={{ width: '8px', height: '35px', backgroundColor: obtenerColorSaco(mov.descripcion), borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }}></div>
-                                    <div style={{ overflow: 'hidden' }}>
-                                        <div style={{ fontWeight: '900', color: THEME.colors.dark, fontSize: '13px', lineHeight: '1.2' }}>{mov.descripcion}</div>
-                                        <div style={{ fontSize: '10px', color: THEME.colors.muted }}>{new Date(mov.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                            <tr key={mov.id} style={{ height: '1px', background: THEME.colors.white }}> {/* Fondo blanco a toda la fila */}
+                                <td style={{ 
+                                    padding: '10px 8px', 
+                                    borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, borderLeft: `1px solid ${THEME.colors.border}`, 
+                                    borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px',
+                                    position: 'relative', zIndex: 2 // Asegura que la descripción esté siempre al frente
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ width: '6px', height: '30px', backgroundColor: obtenerColorSaco(mov.descripcion), borderRadius: '2px', border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }}></div>
+                                        <div style={{ overflow: 'hidden' }}>
+                                            <div style={{ fontWeight: '900', color: THEME.colors.dark, fontSize: '12px', lineHeight: '1.1' }}>{mov.descripcion.toUpperCase()}</div>
+                                            <div style={{ fontSize: '9px', color: THEME.colors.muted }}>{new Date(mov.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td style={{ padding: '12px 5px', textAlign: 'center', borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, background: THEME.colors.white }}>
+                                <td style={{ 
+                                    padding: '10px 2px', textAlign: 'center', 
+                                    borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`,
+                                    background: 'transparent' // Eliminamos fondo blanco individual para que no tape
+                                }}>
                                     <div style={{ fontWeight: '900', fontSize: '14px', color: mov.tipo === 'entrada' ? THEME.colors.success : THEME.colors.danger }}>
                                         {mov.tipo === 'entrada' ? `+${mov.cantidad}` : `-${mov.cantidad}`}
                                     </div>
                                 </td>
-                                <td style={{ padding: '12px 5px', textAlign: 'center', borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, background: '#f8fafc' }}>
-                                    <div style={{ fontWeight: '950', fontSize: '16px', color: '#28a745' }}>{mov.stock_resultante || '--'}</div>
+                                <td style={{ 
+                                    padding: '10px 2px', textAlign: 'center', 
+                                    borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`,
+                                    background: 'rgba(248, 250, 252, 0.8)' // Fondo traslúcido para que no tape el texto si se encima
+                                }}>
+                                    <div style={{ fontWeight: '950', fontSize: '14px', color: '#28a745' }}>{mov.stock_resultante || '--'}</div>
                                 </td>
                                 <td style={{ 
-                                    padding: '12px 10px', textAlign: 'right', 
+                                    padding: '0 8px', 
+                                    textAlign: 'right', 
                                     borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, 
-                                    borderRight: `1px solid ${THEME.colors.border}`, borderTopRightRadius: '12px', 
-                                    borderBottomRightRadius: '12px', background: THEME.colors.white, 
-                                    fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '15px'
+                                    borderRight: `1px solid ${THEME.colors.border}`, borderTopRightRadius: '10px', 
+                                    borderBottomRightRadius: '10px',
+                                    height: 'inherit'
                                 }}>
-                                    <span style={{ fontWeight: 'bold', color: THEME.colors.text }}>
-                                        {limpiarEmail(mov.operador_email)}
-                                    </span>
-                                    
-                                    {/* ICONO DE CÁMARA NEGRO Y SEPARADO */}
-                                    {mov.comprobante_url ? (
-                                        <button 
-                                            onClick={() => verComprobante(mov.comprobante_url)}
-                                            style={{ 
-                                                background: 'none', 
-                                                border: 'none', 
-                                                cursor: 'pointer', 
-                                                fontSize: '18px', 
-                                                padding: '0',
-                                                color: '#000000', // NEGRO SÓLIDO
-                                                filter: 'drop-shadow(0px 0px 1px white)'
-                                            }}
-                                            title="Ver Guía"
-                                        >
-                                            📸
-                                        </button>
-                                    ) : (
-                                        <span style={{ opacity: 0.1, fontSize: '18px' }}>📸</span>
-                                    )}
+                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                                        <span style={{ fontWeight: 'bold', color: THEME.colors.text, fontSize: '11px' }}>
+                                            {limpiarEmail(mov.operador_email)}
+                                        </span>
+                                        
+                                        {mov.comprobante_url ? (
+                                            <button 
+                                                onClick={() => verComprobante(mov.comprobante_url)}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '0', color: '#000000' }}
+                                                title="Ver Guía"
+                                            >
+                                                📸
+                                            </button>
+                                        ) : (
+                                            <span style={{ opacity: 0.1, fontSize: '16px' }}>📸</span>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -294,14 +301,12 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 </table>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
                 <button
                     onClick={exportarPDFMovimientos}
-                    onMouseEnter={() => setHoverPDF(true)}
-                    onMouseLeave={() => setHoverPDF(false)}
                     style={obtenerEstiloBoton(hoverPDF, '#2d3748')}
                 >
-                    📄 DESCARGAR PDF DIARIO
+                    📄 DESCARGAR PDF
                 </button>
             </div>
         </div>

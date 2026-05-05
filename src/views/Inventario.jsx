@@ -52,25 +52,22 @@ const Inventario = () => {
     const obtenerEstiloBoton = (isHovered, colorBase, esSecundario = false) => ({
         width: window.innerWidth < 640 ? '100%' : 'auto',
         minWidth: window.innerWidth < 640 ? 'none' : '170px',
-        padding: '12px 20px',
+        padding: '10px 15px',
         borderRadius: '10px',
         border: 'none',
         fontWeight: 'bold',
-        fontSize: '13px',
+        fontSize: '12px',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '8px',
         transition: 'all 0.3s ease',
-        background: isHovered ? (esSecundario ? '#e2e8f0' : colorBase) : (esSecundario ? '#edf2f7' : colorBase),
+        background: esSecundario ? '#f1f5f9' : colorBase,
         color: esSecundario ? AZUL_CORPORATIVO : 'white',
-        boxShadow: isHovered 
-            ? '0 6px 12px rgba(0,0,0,0.15)' 
-            : '0 4px 6px rgba(0,0,0,0.1)',
+        boxShadow: isHovered ? '0 6px 12px rgba(0,0,0,0.15)' : '0 4px 6px rgba(0,0,0,0.1)',
         transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-        filter: !esSecundario && isHovered ? 'brightness(1.1)' : 'none',
-        marginBottom: window.innerWidth < 640 ? '10px' : '0'
+        marginBottom: window.innerWidth < 640 ? '8px' : '0'
     });
 
     useEffect(() => {
@@ -99,20 +96,14 @@ const Inventario = () => {
         checkRol();
     }, []);
 
-    // FUNCIÓN PARA SUBIR LA FOTO AL STORAGE DE SUPABASE
     const subirFotoGuia = async (file) => {
         try {
             const fileName = `guia_${Date.now()}.jpg`;
             const { data, error } = await supabase.storage
                 .from('comprobantes')
                 .upload(fileName, file);
-            
             if (error) throw error;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('comprobantes')
-                .getPublicUrl(fileName);
-            
+            const { data: { publicUrl } } = supabase.storage.from('comprobantes').getPublicUrl(fileName);
             return publicUrl;
         } catch (error) {
             console.error("Error subiendo foto:", error);
@@ -122,22 +113,20 @@ const Inventario = () => {
 
     const manejarAjuste = async (item, tipo) => {
         let fotoURL = null;
-
         const { value: formValues } = await Swal.fire({
             title: tipo === 'sumar' ? 'Entrada de Stock' : 'Salida de Stock',
             html: `
-                <div style="margin-bottom: 15px; font-size: 16px;">
+                <div style="margin-bottom: 15px; font-size: 15px;">
                     Producto: <b style="color: ${AZUL_CORPORATIVO}; text-transform: uppercase;">${item.descripcion}</b>
                 </div>
-                <input id="swal-input-cant" class="swal2-input" type="number" placeholder="Cantidad" style="margin-bottom: 10px;">
-                <input id="swal-input-desc" class="swal2-input" type="text" placeholder="Nota / Guía (Opcional)" style="margin-bottom: 10px;">
-                
+                <input id="swal-input-cant" class="swal2-input" type="number" placeholder="Cantidad" style="margin-bottom: 10px; font-size: 14px;">
+                <input id="swal-input-desc" class="swal2-input" type="text" placeholder="Nota / Guía (Opcional)" style="margin-bottom: 10px; font-size: 14px;">
                 <div style="margin-top: 10px;">
-                    <label for="foto-guia" style="display: block; padding: 10px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; color: ${THEME.colors.dark};">
+                    <label for="foto-guia" style="display: block; padding: 10px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; color: ${THEME.colors.dark}; font-size: 13px;">
                         📸 TOMAR FOTO DE GUÍA
                     </label>
                     <input type="file" id="foto-guia" accept="image/*" capture="environment" style="display: none;" onchange="document.getElementById('preview-text').innerText = '✅ Foto capturada'">
-                    <p id="preview-text" style="font-size: 12px; margin-top: 5px; color: green;"></p>
+                    <p id="preview-text" style="font-size: 11px; margin-top: 5px; color: green;"></p>
                 </div>
             `,
             focusConfirm: false,
@@ -147,30 +136,24 @@ const Inventario = () => {
             confirmButtonColor: AZUL_CORPORATIVO,
             preConfirm: async () => {
                 const cant = document.getElementById('swal-input-cant').value;
-                const nota = document.getElementById('swal-input-desc').value;
                 const fotoFile = document.getElementById('foto-guia').files[0];
-
                 if (!cant || parseInt(cant) <= 0) {
                     Swal.showValidationMessage('Ingresa una cantidad válida');
                     return false;
                 }
-
-                // Si hay foto, la subimos antes de confirmar el movimiento
                 if (fotoFile) {
                     Swal.showLoading();
                     fotoURL = await subirFotoGuia(fotoFile);
                 }
-
                 return { 
                     cantidad: parseInt(cant), 
-                    notaMovimiento: nota || (tipo === 'sumar' ? 'Entrada manual' : 'Salida manual'),
                     urlComprobante: fotoURL
                 };
             }
         });
 
         if (formValues) {
-            const { cantidad, notaMovimiento, urlComprobante } = formValues;
+            const { cantidad, urlComprobante } = formValues;
             const nuevoTotal = tipo === 'sumar' 
                 ? parseInt(item.stock_total) + cantidad 
                 : parseInt(item.stock_total) - cantidad;
@@ -179,23 +162,21 @@ const Inventario = () => {
                 return Swal.fire('Error', 'Stock insuficiente', 'error');
             }
 
-            // Actualizamos enviando la URL de la foto a la base de datos
+            // CORRECCIÓN: Ahora enviamos item.descripcion para que el historial 
+            // muestre el nombre del saco y no el texto manual.
             await actualizarStock(
                 item.codigo_id, 
                 nuevoTotal, 
                 cantidad, 
                 tipo === 'sumar' ? 'entrada' : 'salida', 
-                notaMovimiento,
-                urlComprobante // Nuevo parámetro para la base de datos
+                item.descripcion, 
+                urlComprobante
             );
         }
     };
 
-    // ... Resto de funciones (manejarBorrarSaco, manejarEditarSaco) se mantienen igual que en el global anterior
     const manejarBorrarSaco = async (item) => {
-        if (rol?.toLowerCase().trim() !== 'admin') {
-            return Swal.fire('Acceso Denegado', 'No tienes permisos para eliminar sacos.', 'error');
-        }
+        if (rolNormalizado !== 'admin') return Swal.fire('Acceso Denegado', 'No tienes permisos.', 'error');
         const result = await Swal.fire({
             title: '¿ELIMINAR?',
             text: item.descripcion,
@@ -223,41 +204,26 @@ const Inventario = () => {
     const esAdminCualquiera = rolNormalizado === 'admin' || rolNormalizado === 'admin_limitado';
 
     return (
-        <div style={{ padding: '15px', maxWidth: '100%', width: '1000px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
+        <div style={{ padding: '10px', maxWidth: '100%', width: '1000px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
             
             <div style={{ 
-                marginBottom: '30px', background: '#f1f5f9', padding: '15px', borderRadius: '15px',
-                display: 'flex', flexDirection: window.innerWidth < 640 ? 'column' : 'row',
-                justifyContent: 'space-between', alignItems: 'center', gap: '15px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+                marginBottom: '20px', background: '#f1f5f9', padding: '12px', borderRadius: '15px',
+                display: 'flex', flexDirection: 'row',
+                justifyContent: 'space-between', alignItems: 'center', gap: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
             }}>
-                <div style={{ fontWeight: 'bold', color: THEME.colors.text, fontSize: '14px' }}>
-                    👤 ROL: {rol ? rol.toUpperCase().replace('_', ' ') : 'CARGANDO...'}
+                <div style={{ fontWeight: 'bold', color: THEME.colors.text, fontSize: '12px' }}>
+                    👤 {rol ? rol.toUpperCase().replace('_', ' ') : '...'}
                 </div>
                 
-                <div style={{ display: 'flex', gap: '10px', width: window.innerWidth < 640 ? '100%' : 'auto', flexDirection: window.innerWidth < 640 ? 'column' : 'row' }}>
-                    {mostrarIrArriba && (
-                        <button 
-                            onClick={irArriba}
-                            onMouseEnter={() => setHoverArriba(true)}
-                            onMouseLeave={() => setHoverArriba(false)}
-                            style={obtenerEstiloBoton(hoverArriba, AZUL_CORPORATIVO, true)}
-                        >
-                            ⬆ SUBIR
-                        </button>
-                    )}
-                    
-                    <button 
-                        onClick={() => supabase.auth.signOut()} 
-                        onMouseEnter={() => setHoverSalir(true)}
-                        onMouseLeave={() => setHoverSalir(false)}
-                        style={obtenerEstiloBoton(hoverSalir, THEME.colors.danger)}
-                    >
-                        CERRAR SESIÓN
-                    </button>
-                </div>
+                <button 
+                    onClick={() => supabase.auth.signOut()} 
+                    style={{ background: THEME.colors.danger, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                    SALIR
+                </button>
             </div>
 
-            <h2 style={{ textAlign: 'center', color: THEME.colors.dark, marginBottom: '30px', fontSize: '24px' }}>📦 Sistema Bodega</h2>
+            <h2 style={{ textAlign: 'center', color: THEME.colors.dark, marginBottom: '20px', fontSize: '20px' }}>📦 Sistema Bodega</h2>
 
             {vista === 'menu' && esAdminCualquiera && <MenuPrincipal setVista={setVista} rol={rol} />}
             {vista === 'reportes' && <ReporteMovimientos setVista={setVista} fetchMovimientos={fetchMovimientos} />}
@@ -270,12 +236,7 @@ const Inventario = () => {
                         try {
                             await crearOperador(nuevoOp.nombre, nuevoOp.email, nuevoOp.password, nuevoOp.rol);
                             setNuevoOp({ nombre: '', email: '', password: '', rol: 'operador' });
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'Usuario creado correctamente',
-                                icon: 'success',
-                                confirmButtonColor: AZUL_CORPORATIVO
-                            });
+                            Swal.fire({ title: 'Éxito', icon: 'success', confirmButtonColor: AZUL_CORPORATIVO });
                         } catch (err) {
                             Swal.fire('Error', err.message, 'error');
                         }
@@ -285,40 +246,35 @@ const Inventario = () => {
 
             {vista === 'sacos' && (
                 <div style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', flexDirection: window.innerWidth < 640 ? 'column-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', gap: '10px' }}>
                         {esAdminCualquiera ? (
-                            <button onClick={() => setVista('menu')} onMouseEnter={() => setHoverVolver(true)} onMouseLeave={() => setHoverVolver(false)} style={obtenerEstiloBoton(hoverVolver, '#edf2f7', true)}>
+                            <button onClick={() => setVista('menu')} style={obtenerEstiloBoton(false, '#edf2f7', true)}>
                                 ⬅ MENÚ PRINCIPAL
                             </button>
-                        ) : <div style={{ width: '1px' }} />}
+                        ) : <div />}
                         
                         {esAdminCualquiera && (
-                            <button onClick={() => setMostrarForm(!mostrarForm)} onMouseEnter={() => setHoverIngresar(true)} onMouseLeave={() => setHoverIngresar(false)} style={obtenerEstiloBoton(hoverIngresar, AZUL_CORPORATIVO)}>
-                                {mostrarForm ? '✖ CANCELAR' : '➕ INGRESAR SACO'}
+                            <button onClick={() => setMostrarForm(!mostrarForm)} style={obtenerEstiloBoton(false, AZUL_CORPORATIVO)}>
+                                {mostrarForm ? '✖' : '➕ SACO'}
                             </button>
                         )}
                     </div>
 
                     {mostrarForm && esAdminCualquiera && (
-                        <div style={{ background: '#f7fafc', padding: '20px', borderRadius: '15px', marginBottom: '20px', border: `1px solid ${THEME.colors.border}`, width: '100%', boxSizing: 'border-box' }}>
+                        <div style={{ background: '#f7fafc', padding: '15px', borderRadius: '15px', marginBottom: '15px', border: `1px solid ${THEME.colors.border}` }}>
                             <FormularioSaco 
                                 nuevoSaco={nuevoSaco} setNuevoSaco={setNuevoSaco} 
                                 alEnviar={async (e) => {
                                     e.preventDefault();
                                     await crearProducto(nuevoSaco);
                                     setMostrarForm(false);
-                                    Swal.fire({
-                                        title: '¡Éxito!',
-                                        text: 'Producto añadido',
-                                        icon: 'success',
-                                        confirmButtonColor: AZUL_CORPORATIVO
-                                    });
+                                    Swal.fire({ title: '¡Éxito!', icon: 'success', confirmButtonColor: AZUL_CORPORATIVO });
                                 }}
                             />
                         </div>
                     )}
 
-                    <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <div style={{ width: '100%', overflowX: 'auto' }}>
                         <TablaInventario items={listaLocal} rol={rol} alAjustar={manejarAjuste} alBorrar={manejarBorrarSaco} alEditar={manejarEditarSaco} setEstadoItems={setListaLocal} />
                     </div>
                 </div>
