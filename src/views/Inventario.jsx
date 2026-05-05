@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useInventory } from '../hooks/useInventory';
 import { supabase } from '../api/supabase';
 import Swal from 'sweetalert2';
-import { THEME } from '../constants/theme'; 
+import { THEME } from '../constants/theme';
 
 import MenuPrincipal from '../components/MenuPrincipal';
 import GestionOperadores from '../components/GestionOperadores';
@@ -14,17 +14,17 @@ const Inventario = () => {
     const {
         items: itemsOriginales,
         operadores, loading, crearProducto,
-        actualizarStock, eliminarSaco, eliminarOperador, 
-        editarProducto, crearOperador, fetchMovimientos 
+        actualizarStock, eliminarSaco, eliminarOperador,
+        editarProducto, crearOperador, fetchMovimientos
     } = useInventory();
 
     const [listaLocal, setListaLocal] = useState([]);
-    const [vista, setVista] = useState(''); 
-    const [rol, setRol] = useState(''); 
+    const [vista, setVista] = useState('');
+    const [rol, setRol] = useState('');
     const [nuevoSaco, setNuevoSaco] = useState({ codigo_id: '', descripcion: '', stock_total: 0 });
     const [nuevoOp, setNuevoOp] = useState({ nombre: '', email: '', password: '', rol: 'operador' });
     const [mostrarForm, setMostrarForm] = useState(false);
-    const [mostrarIrArriba, setMostrarIrArriba] = useState(false); 
+    const [mostrarIrArriba, setMostrarIrArriba] = useState(false);
 
     const AZUL_CORPORATIVO = '#2563eb';
 
@@ -94,11 +94,11 @@ const Inventario = () => {
             const { data, error } = await supabase.storage
                 .from('comprobantes') // Apunta a tu nuevo bucket
                 .upload(fileName, file);
-            
+
             if (error) throw error;
 
             const { data: { publicUrl } } = supabase.storage
-                .from('comprobantes')
+                .from('comprobantes-fotos')
                 .getPublicUrl(fileName);
 
             return publicUrl;
@@ -153,8 +153,8 @@ const Inventario = () => {
                     fotoURL = await subirFotoGuia(fotoFile);
                 }
 
-                return { 
-                    cantidad: parseInt(cant), 
+                return {
+                    cantidad: parseInt(cant),
                     urlComprobante: fotoURL
                 };
             }
@@ -162,8 +162,8 @@ const Inventario = () => {
 
         if (formValues) {
             const { cantidad, urlComprobante } = formValues;
-            const nuevoTotal = tipo === 'sumar' 
-                ? parseInt(item.stock_total) + cantidad 
+            const nuevoTotal = tipo === 'sumar'
+                ? parseInt(item.stock_total) + cantidad
                 : parseInt(item.stock_total) - cantidad;
 
             if (nuevoTotal < 0) {
@@ -172,11 +172,11 @@ const Inventario = () => {
 
             // PASO 4.4: ENVÍO DE URL A LA BASE DE DATOS
             await actualizarStock(
-                item.codigo_id, 
-                nuevoTotal, 
-                cantidad, 
-                tipo === 'sumar' ? 'entrada' : 'salida', 
-                item.descripcion, 
+                item.codigo_id,
+                nuevoTotal,
+                cantidad,
+                tipo === 'sumar' ? 'entrada' : 'salida',
+                item.descripcion,
                 urlComprobante
             );
         }
@@ -213,8 +213,8 @@ const Inventario = () => {
 
     return (
         <div style={{ padding: '10px', maxWidth: '100%', width: '1000px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
-            
-            <div style={{ 
+
+            <div style={{
                 marginBottom: '20px', background: '#f1f5f9', padding: '12px', borderRadius: '15px',
                 display: 'flex', flexDirection: 'row',
                 justifyContent: 'space-between', alignItems: 'center', gap: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
@@ -222,9 +222,9 @@ const Inventario = () => {
                 <div style={{ fontWeight: 'bold', color: THEME.colors.text, fontSize: '12px' }}>
                     👤 {rol ? rol.toUpperCase().replace('_', ' ') : '...'}
                 </div>
-                
-                <button 
-                    onClick={() => supabase.auth.signOut()} 
+
+                <button
+                    onClick={() => supabase.auth.signOut()}
                     style={{ background: THEME.colors.danger, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
                 >
                     SALIR
@@ -238,7 +238,7 @@ const Inventario = () => {
             {vista === 'op' && rolNormalizado === 'admin' && (
                 <GestionOperadores
                     setVista={setVista} nuevoOp={nuevoOp} setNuevoOp={setNuevoOp}
-                    operadores={operadores} miRol={rol} alEliminar={eliminarOperador} 
+                    operadores={operadores} miRol={rol} alEliminar={eliminarOperador}
                     alRegistrar={async (e) => {
                         e.preventDefault();
                         try {
@@ -260,7 +260,7 @@ const Inventario = () => {
                                 ⬅ MENÚ PRINCIPAL
                             </button>
                         ) : <div />}
-                        
+
                         {esAdminCualquiera && (
                             <button onClick={() => setMostrarForm(!mostrarForm)} style={obtenerEstiloBoton(false, AZUL_CORPORATIVO)}>
                                 {mostrarForm ? '✖' : '➕ SACO'}
@@ -270,8 +270,8 @@ const Inventario = () => {
 
                     {mostrarForm && esAdminCualquiera && (
                         <div style={{ background: '#f7fafc', padding: '15px', borderRadius: '15px', marginBottom: '15px', border: `1px solid ${THEME.colors.border}` }}>
-                            <FormularioSaco 
-                                nuevoSaco={nuevoSaco} setNuevoSaco={setNuevoSaco} 
+                            <FormularioSaco
+                                nuevoSaco={nuevoSaco} setNuevoSaco={setNuevoSaco}
                                 alEnviar={async (e) => {
                                     e.preventDefault();
                                     await crearProducto(nuevoSaco);
