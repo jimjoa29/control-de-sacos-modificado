@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useInventory } from '../hooks/useInventory';
 import { supabase } from '../api/supabase';
 import Swal from 'sweetalert2';
-import { THEME } from '../constants/theme';
+import { THEME } from '../constants/theme'; 
 
 import MenuPrincipal from '../components/MenuPrincipal';
 import GestionOperadores from '../components/GestionOperadores';
@@ -14,17 +14,17 @@ const Inventario = () => {
     const {
         items: itemsOriginales,
         operadores, loading, crearProducto,
-        actualizarStock, eliminarSaco, eliminarOperador,
-        editarProducto, crearOperador, fetchMovimientos
+        actualizarStock, eliminarSaco, eliminarOperador, 
+        editarProducto, crearOperador, fetchMovimientos 
     } = useInventory();
 
     const [listaLocal, setListaLocal] = useState([]);
-    const [vista, setVista] = useState('');
-    const [rol, setRol] = useState('');
+    const [vista, setVista] = useState(''); 
+    const [rol, setRol] = useState(''); 
     const [nuevoSaco, setNuevoSaco] = useState({ codigo_id: '', descripcion: '', stock_total: 0 });
     const [nuevoOp, setNuevoOp] = useState({ nombre: '', email: '', password: '', rol: 'operador' });
     const [mostrarForm, setMostrarForm] = useState(false);
-    const [mostrarIrArriba, setMostrarIrArriba] = useState(false);
+    const [mostrarIrArriba, setMostrarIrArriba] = useState(false); 
 
     const AZUL_CORPORATIVO = '#2563eb';
 
@@ -87,12 +87,12 @@ const Inventario = () => {
         checkRol();
     }, []);
 
-    // PASO 4.1: FUNCIÓN DE SUBIDA AL NUEVO BUCKET
+    // --- CORRECCIÓN FINAL: NOMBRE DEL BUCKET ACTUALIZADO ---
     const subirFotoGuia = async (file) => {
         try {
             const fileName = `guia_${Date.now()}.jpg`;
             const { data, error } = await supabase.storage
-                .from('comprobantes') // Apunta a tu nuevo bucket
+                .from('comprobantes-fotos') // Coincide con tu imagen image_2bd124.png
                 .upload(fileName, file);
 
             if (error) throw error;
@@ -111,7 +111,6 @@ const Inventario = () => {
     const manejarAjuste = async (item, tipo) => {
         let fotoURL = null;
 
-        // PASO 4.2: INTERFAZ DE CÁMARA REINSTALADA
         const htmlCamara = tipo === 'restar' ? `
             <div style="margin-top: 10px;">
                 <label for="foto-guia" style="display: block; padding: 10px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; color: ${THEME.colors.dark}; font-size: 13px;">
@@ -147,7 +146,6 @@ const Inventario = () => {
                     return false;
                 }
 
-                // PASO 4.3: PROCESO DE SUBIDA ANTES DE CONFIRMAR
                 if (fotoFile) {
                     Swal.showLoading();
                     fotoURL = await subirFotoGuia(fotoFile);
@@ -170,7 +168,6 @@ const Inventario = () => {
                 return Swal.fire('Error', 'Stock insuficiente', 'error');
             }
 
-            // PASO 4.4: ENVÍO DE URL A LA BASE DE DATOS
             await actualizarStock(
                 item.codigo_id,
                 nuevoTotal,
