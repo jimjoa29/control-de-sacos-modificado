@@ -87,15 +87,18 @@ const Inventario = () => {
         checkRol();
     }, []);
 
-    // --- CORRECCIÓN FINAL: NOMBRE DEL BUCKET ACTUALIZADO ---
+    // --- FUNCIÓN DE SUBIDA REFORZADA ---
     const subirFotoGuia = async (file) => {
         try {
             const fileName = `guia_${Date.now()}.jpg`;
             const { data, error } = await supabase.storage
-                .from('comprobantes-fotos') // Coincide con tu imagen image_2bd124.png
+                .from('comprobantes-fotos') 
                 .upload(fileName, file);
 
-            if (error) throw error;
+            if (error) {
+                console.error("Error Supabase Storage:", error.message);
+                return null;
+            }
 
             const { data: { publicUrl } } = supabase.storage
                 .from('comprobantes-fotos')
@@ -113,11 +116,11 @@ const Inventario = () => {
 
         const htmlCamara = tipo === 'restar' ? `
             <div style="margin-top: 10px;">
-                <label for="foto-guia" style="display: block; padding: 10px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; color: ${THEME.colors.dark}; font-size: 13px;">
+                <label for="foto-guia" style="display: block; padding: 12px; background: #2563eb; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 13px; text-align: center;">
                     📸 TOMAR FOTO DE GUÍA
                 </label>
-                <input type="file" id="foto-guia" accept="image/*" capture="environment" style="display: none;" onchange="document.getElementById('preview-text').innerText = '✅ Foto capturada'">
-                <p id="preview-text" style="font-size: 11px; margin-top: 5px; color: green;"></p>
+                <input type="file" id="foto-guia" accept="image/*" capture="environment" style="display: none;" onchange="document.getElementById('preview-text').innerText = '✅ Foto lista para subir'">
+                <p id="preview-text" style="font-size: 11px; margin-top: 5px; color: #2563eb; font-weight: bold;"></p>
             </div>
         ` : '';
 
@@ -146,9 +149,15 @@ const Inventario = () => {
                     return false;
                 }
 
+                // BLOQUE CRÍTICO: Esperar subida de foto antes de cerrar el modal
                 if (fotoFile) {
-                    Swal.showLoading();
+                    Swal.showLoading(); 
                     fotoURL = await subirFotoGuia(fotoFile);
+                    
+                    if (!fotoURL) {
+                        Swal.showValidationMessage('Error: No se pudo subir la foto a Supabase. Revisa tus permisos.');
+                        return false;
+                    }
                 }
 
                 return {
