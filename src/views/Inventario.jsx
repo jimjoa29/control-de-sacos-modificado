@@ -87,14 +87,20 @@ const Inventario = () => {
         checkRol();
     }, []);
 
+    // PASO 4.1: FUNCIÓN DE SUBIDA AL NUEVO BUCKET
     const subirFotoGuia = async (file) => {
         try {
             const fileName = `guia_${Date.now()}.jpg`;
             const { data, error } = await supabase.storage
-                .from('comprobantes')
+                .from('comprobantes') // Apunta a tu nuevo bucket
                 .upload(fileName, file);
+            
             if (error) throw error;
-            const { data: { publicUrl } } = supabase.storage.from('comprobantes').getPublicUrl(fileName);
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('comprobantes')
+                .getPublicUrl(fileName);
+
             return publicUrl;
         } catch (error) {
             console.error("Error subiendo foto:", error);
@@ -105,8 +111,7 @@ const Inventario = () => {
     const manejarAjuste = async (item, tipo) => {
         let fotoURL = null;
 
-        // --- BLOQUE DE CÁMARA CONDICIONAL ---
-        // Solo incluimos el HTML de la cámara si la acción es restar (Salida)
+        // PASO 4.2: INTERFAZ DE CÁMARA REINSTALADA
         const htmlCamara = tipo === 'restar' ? `
             <div style="margin-top: 10px;">
                 <label for="foto-guia" style="display: block; padding: 10px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; color: ${THEME.colors.dark}; font-size: 13px;">
@@ -142,7 +147,7 @@ const Inventario = () => {
                     return false;
                 }
 
-                // Subida de foto solo si existe el archivo (flujo de restar)
+                // PASO 4.3: PROCESO DE SUBIDA ANTES DE CONFIRMAR
                 if (fotoFile) {
                     Swal.showLoading();
                     fotoURL = await subirFotoGuia(fotoFile);
@@ -165,6 +170,7 @@ const Inventario = () => {
                 return Swal.fire('Error', 'Stock insuficiente', 'error');
             }
 
+            // PASO 4.4: ENVÍO DE URL A LA BASE DE DATOS
             await actualizarStock(
                 item.codigo_id, 
                 nuevoTotal, 
