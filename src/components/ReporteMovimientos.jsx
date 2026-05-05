@@ -69,7 +69,6 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             confirmButtonColor: AZUL_CORPORATIVO,
             width: window.innerWidth < 640 ? '95%' : '600px',
             imageWidth: '100%',
-            // Asegura que la imagen cargue correctamente antes de mostrar el modal
             didOpen: () => {
                 Swal.showLoading();
                 const img = Swal.getImage();
@@ -126,10 +125,10 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: 'white' }}>
                         <tr>
-                            <th style={{ padding: '12px', textAlign: 'left', width: '40%', fontSize: '11px' }}>Producto</th>
+                            <th style={{ padding: '12px', textAlign: 'left', width: '35%', fontSize: '11px' }}>Producto</th>
                             <th style={{ padding: '12px', textAlign: 'center', width: '15%', fontSize: '11px' }}>Mov.</th>
-                            <th style={{ padding: '12px', textAlign: 'center', width: '20%', fontSize: '11px' }}>Stock</th>
-                            <th style={{ padding: '12px', textAlign: 'right', width: '25%', fontSize: '11px' }}>Op.</th>
+                            <th style={{ padding: '12px', textAlign: 'center', width: '15%', fontSize: '11px' }}>Stock</th>
+                            <th style={{ padding: '12px', textAlign: 'right', width: '35%', fontSize: '11px' }}>Op.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -139,7 +138,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <div style={{ width: '6px', height: '30px', backgroundColor: obtenerColorSaco(mov.descripcion), borderRadius: '2px' }}></div>
                                         <div style={{ overflow: 'hidden' }}>
-                                            <div style={{ fontWeight: '900', fontSize: '12px', lineHeight: '1.1' }}>{mov.descripcion.toUpperCase()}</div>
+                                            <div style={{ fontWeight: '900', fontSize: '11px', lineHeight: '1.1' }}>{mov.descripcion.toUpperCase()}</div>
                                             <div style={{ fontSize: '9px', color: '#666' }}>{new Date(mov.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                         </div>
                                     </div>
@@ -148,25 +147,32 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                                     {mov.tipo === 'entrada' ? `+${mov.cantidad}` : `-${mov.cantidad}`}
                                 </td>
                                 <td style={{ textAlign: 'center', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', fontSize: '14px', fontWeight: 'bold', color: '#28a745' }}>{mov.stock_resultante}</td>
-                                <td style={{ paddingRight: '10px', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', borderTopRightRadius: '10px', borderBottomRightRadius: '10px' }}>
-                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '5px' }}>
-                                        <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{limpiarEmail(mov.operador_email)}</span>
+                                <td style={{ paddingRight: '12px', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', borderTopRightRadius: '10px', borderBottomRightRadius: '10px' }}>
+                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
+                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: THEME.colors.text }}>{limpiarEmail(mov.operador_email)}</span>
                                         
-                                        {/* CÁMARA CON ACCIÓN DE CLIC REFORZADA */}
                                         {mov.comprobante_url ? (
                                             <button 
                                                 type="button"
-                                                onPointerDown={() => verComprobante(mov.comprobante_url)}
+                                                onClick={() => verComprobante(mov.comprobante_url)}
                                                 style={{ 
-                                                    background: 'none', border: 'none', cursor: 'pointer', 
-                                                    fontSize: '22px', padding: '10px 5px', display: 'flex', 
-                                                    alignItems: 'center', touchAction: 'manipulation' 
+                                                    background: '#eff6ff', 
+                                                    border: `1.5px solid ${AZUL_CORPORATIVO}`, 
+                                                    borderRadius: '8px',
+                                                    cursor: 'pointer', 
+                                                    fontSize: '18px', 
+                                                    padding: '5px', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center',
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                                 }}
                                             >
                                                 📸
                                             </button>
                                         ) : (
-                                            <span style={{ opacity: 0.1, fontSize: '22px', padding: '10px 5px' }}>📸</span>
+                                            <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <span style={{ opacity: 0.1, fontSize: '18px' }}>🚫</span>
+                                            </div>
                                         )}
                                     </div>
                                 </td>
