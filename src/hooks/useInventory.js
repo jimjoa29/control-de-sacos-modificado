@@ -88,7 +88,8 @@ export const useInventory = () => {
         fetchInventory();
     };
 
-    const actualizarStock = async (codigo_id, nuevoStock, cantidadMovida, tipoMovimiento, descripcionSaco, urlComprobante = null) => {
+    // --- VERSIÓN LIMPIA SIN FOTOS ---
+    const actualizarStock = async (codigo_id, nuevoStock, cantidadMovida, tipoMovimiento, descripcionSaco) => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
@@ -105,11 +106,9 @@ export const useInventory = () => {
             
             if (stockError) throw stockError;
 
-            // --- CORRECCIÓN FINAL HORA SANTIAGO DE CHILE ---
+            // Hora Santiago de Chile
             const ahora = new Date();
-            // Calculamos el desfase de Chile (UTC-4) en milisegundos
             const offset = 4 * 60 * 60 * 1000; 
-            // Restamos el offset y generamos un ISO manual que Supabase acepte como local
             const fechaAudit = new Date(ahora.getTime() - offset).toISOString().replace('Z', '');
 
             const { error: movError } = await supabase
@@ -121,8 +120,8 @@ export const useInventory = () => {
                     cantidad: cantidadMovida,
                     operador_email: perfil?.nombre || user?.email || 'Sistema',
                     stock_resultante: nuevoStock,
-                    comprobante_url: urlComprobante,
-                    fecha: fechaAudit // <--- AHORA SÍ COINCIDE CON SANTIAGO
+                    fecha: fechaAudit 
+                    // Se eliminó la columna comprobante_url para ahorrar espacio
                 }]);
 
             if (movError) throw movError;

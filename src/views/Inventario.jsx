@@ -87,43 +87,7 @@ const Inventario = () => {
         checkRol();
     }, []);
 
-    // --- FUNCIÓN DE SUBIDA REFORZADA ---
-    const subirFotoGuia = async (file) => {
-        try {
-            const fileName = `guia_${Date.now()}.jpg`;
-            const { data, error } = await supabase.storage
-                .from('comprobantes-fotos') 
-                .upload(fileName, file);
-
-            if (error) {
-                console.error("Error Supabase Storage:", error.message);
-                return null;
-            }
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('comprobantes-fotos')
-                .getPublicUrl(fileName);
-
-            return publicUrl;
-        } catch (error) {
-            console.error("Error subiendo foto:", error);
-            return null;
-        }
-    };
-
     const manejarAjuste = async (item, tipo) => {
-        let fotoURL = null;
-
-        const htmlCamara = tipo === 'restar' ? `
-            <div style="margin-top: 10px;">
-                <label for="foto-guia" style="display: block; padding: 12px; background: #2563eb; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 13px; text-align: center;">
-                    📸 TOMAR FOTO DE GUÍA
-                </label>
-                <input type="file" id="foto-guia" accept="image/*" capture="environment" style="display: none;" onchange="document.getElementById('preview-text').innerText = '✅ Foto lista para subir'">
-                <p id="preview-text" style="font-size: 11px; margin-top: 5px; color: #2563eb; font-weight: bold;"></p>
-            </div>
-        ` : '';
-
         const { value: formValues } = await Swal.fire({
             title: tipo === 'sumar' ? 'Entrada de Stock' : 'Salida de Stock',
             html: `
@@ -132,43 +96,26 @@ const Inventario = () => {
                 </div>
                 <input id="swal-input-cant" class="swal2-input" type="number" placeholder="Cantidad" style="margin-bottom: 10px; font-size: 14px;">
                 <input id="swal-input-desc" class="swal2-input" type="text" placeholder="Nota / Guía (Opcional)" style="margin-bottom: 10px; font-size: 14px;">
-                ${htmlCamara}
             `,
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'CONFIRMAR',
             cancelButtonText: 'CANCELAR',
             confirmButtonColor: AZUL_CORPORATIVO,
-            preConfirm: async () => {
+            preConfirm: () => {
                 const cant = document.getElementById('swal-input-cant').value;
-                const fotoInput = document.getElementById('foto-guia');
-                const fotoFile = fotoInput ? fotoInput.files[0] : null;
-
                 if (!cant || parseInt(cant) <= 0) {
                     Swal.showValidationMessage('Ingresa una cantidad válida');
                     return false;
                 }
-
-                // BLOQUE CRÍTICO: Esperar subida de foto antes de cerrar el modal
-                if (fotoFile) {
-                    Swal.showLoading(); 
-                    fotoURL = await subirFotoGuia(fotoFile);
-                    
-                    if (!fotoURL) {
-                        Swal.showValidationMessage('Error: No se pudo subir la foto a Supabase. Revisa tus permisos.');
-                        return false;
-                    }
-                }
-
                 return {
-                    cantidad: parseInt(cant),
-                    urlComprobante: fotoURL
+                    cantidad: parseInt(cant)
                 };
             }
         });
 
         if (formValues) {
-            const { cantidad, urlComprobante } = formValues;
+            const { cantidad } = formValues;
             const nuevoTotal = tipo === 'sumar'
                 ? parseInt(item.stock_total) + cantidad
                 : parseInt(item.stock_total) - cantidad;
@@ -177,13 +124,14 @@ const Inventario = () => {
                 return Swal.fire('Error', 'Stock insuficiente', 'error');
             }
 
+            // Enviamos null permanentemente para ahorrar espacio en Supabase
             await actualizarStock(
                 item.codigo_id,
                 nuevoTotal,
                 cantidad,
                 tipo === 'sumar' ? 'entrada' : 'salida',
                 item.descripcion,
-                urlComprobante
+                null 
             );
         }
     };
@@ -219,8 +167,8 @@ const Inventario = () => {
 
     return (
         <div style={{ padding: '10px', maxWidth: '100%', width: '1000px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
-
-            <div style={{
+            
+            <div style={{ 
                 marginBottom: '20px', background: '#f1f5f9', padding: '12px', borderRadius: '15px',
                 display: 'flex', flexDirection: 'row',
                 justifyContent: 'space-between', alignItems: 'center', gap: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
@@ -228,9 +176,9 @@ const Inventario = () => {
                 <div style={{ fontWeight: 'bold', color: THEME.colors.text, fontSize: '12px' }}>
                     👤 {rol ? rol.toUpperCase().replace('_', ' ') : '...'}
                 </div>
-
-                <button
-                    onClick={() => supabase.auth.signOut()}
+                
+                <button 
+                    onClick={() => supabase.auth.signOut()} 
                     style={{ background: THEME.colors.danger, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
                 >
                     SALIR
@@ -244,7 +192,7 @@ const Inventario = () => {
             {vista === 'op' && rolNormalizado === 'admin' && (
                 <GestionOperadores
                     setVista={setVista} nuevoOp={nuevoOp} setNuevoOp={setNuevoOp}
-                    operadores={operadores} miRol={rol} alEliminar={eliminarOperador}
+                    operadores={operadores} miRol={rol} alEliminar={eliminarOperador} 
                     alRegistrar={async (e) => {
                         e.preventDefault();
                         try {
@@ -266,7 +214,7 @@ const Inventario = () => {
                                 ⬅ MENÚ PRINCIPAL
                             </button>
                         ) : <div />}
-
+                        
                         {esAdminCualquiera && (
                             <button onClick={() => setMostrarForm(!mostrarForm)} style={obtenerEstiloBoton(false, AZUL_CORPORATIVO)}>
                                 {mostrarForm ? '✖' : '➕ SACO'}
@@ -276,8 +224,8 @@ const Inventario = () => {
 
                     {mostrarForm && esAdminCualquiera && (
                         <div style={{ background: '#f7fafc', padding: '15px', borderRadius: '15px', marginBottom: '15px', border: `1px solid ${THEME.colors.border}` }}>
-                            <FormularioSaco
-                                nuevoSaco={nuevoSaco} setNuevoSaco={setNuevoSaco}
+                            <FormularioSaco 
+                                nuevoSaco={nuevoSaco} setNuevoSaco={setNuevoSaco} 
                                 alEnviar={async (e) => {
                                     e.preventDefault();
                                     await crearProducto(nuevoSaco);

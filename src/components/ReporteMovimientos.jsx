@@ -54,37 +54,6 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
         setHistorialFiltrado(filtrados);
     };
 
-    // --- FUNCIÓN CRÍTICA: VER COMPROBANTE ---
-    const verComprobante = (url) => {
-        if (!url) {
-            Swal.fire('Sin imagen', 'No se encontró respaldo para este movimiento.', 'info');
-            return;
-        }
-        
-        Swal.fire({
-            title: 'Respaldo de Despacho',
-            imageUrl: url,
-            imageAlt: 'Foto de la guía',
-            confirmButtonText: 'CERRAR',
-            confirmButtonColor: AZUL_CORPORATIVO,
-            width: window.innerWidth < 640 ? '95%' : '600px',
-            imageWidth: '100%',
-            didOpen: () => {
-                Swal.showLoading();
-                const img = Swal.getImage();
-                img.onload = () => Swal.hideLoading();
-                img.onerror = () => {
-                    Swal.hideLoading();
-                    Swal.update({
-                        title: 'Error de carga',
-                        text: 'No se pudo cargar la imagen desde el servidor.',
-                        icon: 'error'
-                    });
-                };
-            }
-        });
-    };
-
     const obtenerColorSaco = (descripcion) => {
         const desc = descripcion?.toLowerCase() || "";
         if (desc.includes('rojo')) return '#feb2b2';
@@ -125,10 +94,10 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', tableLayout: 'fixed' }}>
                     <thead style={{ background: THEME.colors.dark, color: 'white' }}>
                         <tr>
-                            <th style={{ padding: '12px', textAlign: 'left', width: '35%', fontSize: '11px' }}>Producto</th>
-                            <th style={{ padding: '12px', textAlign: 'center', width: '15%', fontSize: '11px' }}>Mov.</th>
-                            <th style={{ padding: '12px', textAlign: 'center', width: '15%', fontSize: '11px' }}>Stock</th>
-                            <th style={{ padding: '12px', textAlign: 'right', width: '35%', fontSize: '11px' }}>Op.</th>
+                            <th style={{ padding: '12px', textAlign: 'left', width: '40%', fontSize: '11px' }}>Producto</th>
+                            <th style={{ padding: '12px', textAlign: 'center', width: '20%', fontSize: '11px' }}>Mov.</th>
+                            <th style={{ padding: '12px', textAlign: 'center', width: '20%', fontSize: '11px' }}>Stock</th>
+                            <th style={{ padding: '12px', textAlign: 'right', width: '20%', fontSize: '11px' }}>Op.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -147,34 +116,8 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                                     {mov.tipo === 'entrada' ? `+${mov.cantidad}` : `-${mov.cantidad}`}
                                 </td>
                                 <td style={{ textAlign: 'center', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', fontSize: '14px', fontWeight: 'bold', color: '#28a745' }}>{mov.stock_resultante}</td>
-                                <td style={{ paddingRight: '12px', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', borderTopRightRadius: '10px', borderBottomRightRadius: '10px' }}>
-                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
-                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: THEME.colors.text }}>{limpiarEmail(mov.operador_email)}</span>
-                                        
-                                        {mov.comprobante_url ? (
-                                            <button 
-                                                type="button"
-                                                onClick={() => verComprobante(mov.comprobante_url)}
-                                                style={{ 
-                                                    background: '#eff6ff', 
-                                                    border: `1.5px solid ${AZUL_CORPORATIVO}`, 
-                                                    borderRadius: '8px',
-                                                    cursor: 'pointer', 
-                                                    fontSize: '18px', 
-                                                    padding: '5px', 
-                                                    display: 'flex', 
-                                                    alignItems: 'center',
-                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                }}
-                                            >
-                                                📸
-                                            </button>
-                                        ) : (
-                                            <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <span style={{ opacity: 0.1, fontSize: '18px' }}>🚫</span>
-                                            </div>
-                                        )}
-                                    </div>
+                                <td style={{ paddingRight: '12px', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', borderRight: '1px solid #eee', borderTopRightRadius: '10px', borderBottomRightRadius: '10px', textAlign: 'right' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: THEME.colors.text }}>{limpiarEmail(mov.operador_email)}</span>
                                 </td>
                             </tr>
                         ))}
