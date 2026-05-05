@@ -23,8 +23,6 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
 
     // COLOR AZUL CORPORATIVO
     const AZUL_CORPORATIVO = '#2563eb';
-    // COLOR ICONO OSCURO
-    const ICONO_OSCURO = '#1a202c';
 
     const limpiarEmail = (email) => {
         if (!email) return "SISTEMA";
@@ -75,7 +73,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
         if (!url) return;
         
         Swal.fire({
-            title: 'Evidencia de Movimiento',
+            title: 'Evidencia de Despacho',
             imageUrl: url,
             imageAlt: 'Foto de la guía de despacho',
             confirmButtonText: 'CERRAR',
@@ -92,11 +90,11 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             
             doc.setFontSize(18);
             doc.setTextColor(0, 0, 0); 
-            doc.text("Historial de Movimientos de Inventario", 14, 20);
+            doc.text("Historial de Despacho", 14, 20);
             
             doc.setFontSize(10);
             doc.setTextColor(100, 100, 100);
-            doc.text(`Generado por: JOAN | Sistema Bodega`, 14, 28);
+            doc.text(`Generado por: JOAN ALEJANDRO NARVÁEZ GARCÍA | Sistema Bodega`, 14, 28);
             doc.text(`Fecha de consulta: ${fechaFiltro}`, 14, 34);
 
             const tableColumn = ["Hora", "Producto", "Tipo", "Cant.", "Stock Final", "Operador"];
@@ -146,7 +144,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                 margin: { top: 40 }
             });
 
-            doc.save(`Movimientos_${fechaFiltro}.pdf`);
+            doc.save(`Historial_Despacho_${fechaFiltro}.pdf`);
         } catch (error) {
             console.error("Error PDF:", error);
             Swal.fire('Error', 'No se pudo generar el reporte PDF', 'error');
@@ -197,7 +195,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
             </div>
 
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <h3 style={{ color: THEME.colors.dark, fontWeight: 'bold' }}>📊 Historial y Evidencias</h3>
+                <h3 style={{ color: THEME.colors.dark, fontWeight: 'bold' }}>📊 Historial de Despacho</h3>
             </div>
 
             <div style={{
@@ -237,7 +235,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                             <th style={{ padding: '15px', textAlign: 'left', borderRadius: '15px 0 0 15px', fontSize: '12px', width: '35%' }}>Producto / Hora</th>
                             <th style={{ padding: '15px', textAlign: 'center', fontSize: '12px', width: '15%' }}>Mov.</th>
                             <th style={{ padding: '15px', textAlign: 'center', fontSize: '12px', width: '20%' }}>Stock Final</th>
-                            <th style={{ padding: '15px', textAlign: 'right', borderRadius: '0 15px 15px 0', fontSize: '12px', width: '30%' }}>Op. / Foto</th>
+                            <th style={{ padding: '15px', textAlign: 'right', borderRadius: '0 15px 15px 0', fontSize: '12px', width: '30%' }}>Op.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -258,33 +256,37 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                                 <td style={{ padding: '12px 5px', textAlign: 'center', borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, background: '#f8fafc' }}>
                                     <div style={{ fontWeight: '950', fontSize: '16px', color: '#28a745' }}>{mov.stock_resultante || '--'}</div>
                                 </td>
-                                <td style={{ padding: '12px 10px', textAlign: 'right', borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, borderRight: `1px solid ${THEME.colors.border}`, borderTopRightRadius: '12px', borderBottomRightRadius: '12px', background: THEME.colors.white, fontSize: '11px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
-                                        <span style={{ fontWeight: 'bold', color: THEME.colors.text }}>{limpiarEmail(mov.operador_email)}</span>
-                                        {/*        ICONO DE CÁMARA OSCURECIDO Y MEJORADO */}
-                                        {mov.comprobante_url ? (
-                                            <button 
-                                                onClick={() => verComprobante(mov.comprobante_url)}
-                                                style={{ 
-                                                    background: 'none', 
-                                                    border: 'none', 
-                                                    cursor: 'pointer', 
-                                                    fontSize: '20px', 
-                                                    padding: '4px',
-                                                    color: ICONO_OSCURO,
-                                                    filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))',
-                                                    transition: 'transform 0.2s ease'
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                                title="Ver Guía de Despacho"
-                                            >
-                                                📸
-                                            </button>
-                                        ) : (
-                                            <span style={{ opacity: 0.15, fontSize: '20px', filter: 'grayscale(1)' }}>📸</span>
-                                        )}
-                                    </div>
+                                <td style={{ 
+                                    padding: '12px 10px', textAlign: 'right', 
+                                    borderTop: `1px solid ${THEME.colors.border}`, borderBottom: `1px solid ${THEME.colors.border}`, 
+                                    borderRight: `1px solid ${THEME.colors.border}`, borderTopRightRadius: '12px', 
+                                    borderBottomRightRadius: '12px', background: THEME.colors.white, 
+                                    fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '15px'
+                                }}>
+                                    <span style={{ fontWeight: 'bold', color: THEME.colors.text }}>
+                                        {limpiarEmail(mov.operador_email)}
+                                    </span>
+                                    
+                                    {/* ICONO DE CÁMARA NEGRO Y SEPARADO */}
+                                    {mov.comprobante_url ? (
+                                        <button 
+                                            onClick={() => verComprobante(mov.comprobante_url)}
+                                            style={{ 
+                                                background: 'none', 
+                                                border: 'none', 
+                                                cursor: 'pointer', 
+                                                fontSize: '18px', 
+                                                padding: '0',
+                                                color: '#000000', // NEGRO SÓLIDO
+                                                filter: 'drop-shadow(0px 0px 1px white)'
+                                            }}
+                                            title="Ver Guía"
+                                        >
+                                            📸
+                                        </button>
+                                    ) : (
+                                        <span style={{ opacity: 0.1, fontSize: '18px' }}>📸</span>
+                                    )}
                                 </td>
                             </tr>
                         ))}

@@ -74,7 +74,7 @@ export const useInventory = () => {
                     id: authData.user.id, 
                     email: emailReal, 
                     rol: rolNormalizado,
-                    nombre: nombre // <--- AGREGADO: Se guarda el nombre en la DB
+                    nombre: nombre 
                 }]);
 
             if (perfilError) throw new Error(`Error en Base de Datos: ${perfilError.message}`);
@@ -88,19 +88,16 @@ export const useInventory = () => {
         fetchInventory();
     };
 
-    const actualizarStock = async (codigo_id, nuevoStock, cantidadMovida, tipoMovimiento, descripcionSaco) => {
+    const actualizarStock = async (codigo_id, nuevoStock, cantidadMovida, tipoMovimiento, descripcionSaco, urlComprobante = null) => {
         try {
-            // A. Obtenemos el usuario actual
             const { data: { user } } = await supabase.auth.getUser();
 
-            // B. Buscamos el NOMBRE real en la tabla perfiles antes de registrar nada
             const { data: perfil } = await supabase
                 .from('perfiles')
                 .select('nombre')
                 .eq('id', user.id)
                 .single();
 
-            // 1. Intento de actualización de stock
             const { error: stockError } = await supabase
                 .from('inventario')
                 .update({ stock_total: nuevoStock })
@@ -108,7 +105,11 @@ export const useInventory = () => {
             
             if (stockError) throw stockError;
 
-            // 2. Registro del movimiento usando el NOMBRE si existe
+            // AJUSTE DE HORA LOCAL CHILE PARA AUDITORÍA
+            // Obtenemos la fecha exacta en Chile para evitar el desfase de medianoche
+            const ahoraChile = new Date().toLocaleString("en-US", {timeZone: "America/Santiago"});
+            const fechaAudit = new Date(ahoraChile).toISOString();
+
             const { error: movError } = await supabase
                 .from('movimientos')
                 .insert([{
@@ -116,10 +117,10 @@ export const useInventory = () => {
                     descripcion: descripcionSaco,
                     tipo: tipoMovimiento,
                     cantidad: cantidadMovida,
-                    // Si encontramos el nombre en perfiles lo usamos, si no, el email como respaldo
                     operador_email: perfil?.nombre || user?.email || 'Sistema',
                     stock_resultante: nuevoStock,
-                    fecha: new Date().toISOString()
+                    comprobante_url: urlComprobante,
+                    fecha: fechaAudit // <--- FECHA SINCRONIZADA CON SANTIAGO
                 }]);
 
             if (movError) throw movError;
