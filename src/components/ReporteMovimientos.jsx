@@ -78,7 +78,7 @@ const ReporteMovimientos = ({ setVista, fetchMovimientos }) => {
                         transform: hoverVolver ? 'translateY(-2px)' : 'translateY(0)',
                     }}
                 >
-                    ⬅ MENÚ PRINCIPAL
+                    ⬅ MENÚ
                 </button>
             </div>
 

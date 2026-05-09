@@ -92,7 +92,7 @@ const GestionOperadores = ({
                     onMouseLeave={() => setHoverVolver(false)}
                     style={{ ...obtenerEstiloBoton(hoverVolver, '#edf2f7', true), minWidth: '140px', fontSize: '11px' }}
                 >
-                    ⬅ MENÚ PRINCIPAL
+                    ⬅ MENÚ 
                 </button>
 
                 <button

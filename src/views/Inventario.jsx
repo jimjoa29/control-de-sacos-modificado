@@ -42,17 +42,17 @@ const Inventario = () => {
 
     const obtenerEstiloBoton = (isHovered, colorBase, esSecundario = false) => ({
         width: window.innerWidth < 640 ? '100%' : 'auto',
-        minWidth: window.innerWidth < 640 ? 'none' : '170px',
+        minWidth: window.innerWidth < 640 ? 'none' : '120px',
         padding: '10px 15px',
         borderRadius: '10px',
         border: 'none',
         fontWeight: 'bold',
-        fontSize: '12px',
+        fontSize: '11px',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '8px',
+        gap: '6px',
         transition: 'all 0.3s ease',
         background: esSecundario ? '#f1f5f9' : colorBase,
         color: esSecundario ? AZUL_CORPORATIVO : 'white',
@@ -87,6 +87,90 @@ const Inventario = () => {
         checkRol();
     }, []);
 
+    const imprimirConteo = () => {
+        const contenido = document.getElementById('tabla-conteo-imprimir').cloneNode(true);
+        const inputs = contenido.querySelectorAll('input');
+        inputs.forEach(input => {
+            const valor = input.value || "0";
+            const span = document.createElement('span');
+            span.innerText = valor;
+            input.parentNode.replaceChild(span, input);
+        });
+
+        const ventana = window.open('', '', 'height=600,width=800');
+        ventana.document.write('<html><head><title>Informe de Auditoría - Bodega</title>');
+        ventana.document.write('<style>table { width: 100%; border-collapse: collapse; font-family: sans-serif; } th, td { border: 1px solid #ddd; padding: 12px; text-align: center; } th { background-color: #f2f2f2; } h2 { text-align: center; font-family: sans-serif; }</style>');
+        ventana.document.write('</head><body>');
+        ventana.document.write('<h2>REPORTE DE CONTEO FÍSICO</h2>');
+        ventana.document.write('<p style="text-align:center">Fecha: ' + new Date().toLocaleString() + '</p>');
+        ventana.document.write(contenido.innerHTML);
+        ventana.document.write('</body></html>');
+        ventana.document.close();
+        ventana.print();
+    };
+
+    const abrirModalConteo = () => {
+        let tablaHtml = `
+            <div id="tabla-conteo-imprimir" style="width: 100%; overflow-x: auto;">
+                <table style="width: 100%; min-width: 300px; border-collapse: collapse; font-family: sans-serif;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #eee; font-size: 10px; color: #666;">
+                            <th style="text-align: left; padding: 8px; width: 45%;">PRODUCTO</th>
+                            <th style="text-align: center; padding: 8px; width: 15%;">SIST.</th>
+                            <th style="text-align: center; padding: 8px; width: 25%;">FÍSICO</th>
+                            <th style="text-align: center; padding: 8px; width: 15%;">DIF.</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 12px;">
+        `;
+
+        listaLocal.forEach((item, index) => {
+            tablaHtml += `
+                <tr style="border-bottom: 1px solid #f4f4f4;">
+                    <td style="text-align: left; padding: 10px 8px; font-weight: 800; color: #333; line-height: 1.1;">
+                        ${item.descripcion.toUpperCase()}
+                    </td>
+                    <td style="text-align: center; padding: 8px; font-weight: bold; color: #666;" id="sys-${index}">
+                        ${item.stock_total}
+                    </td>
+                    <td style="text-align: center; padding: 8px;">
+                        <input type="number" id="fis-${index}" 
+                            placeholder="0"
+                            style="width: 55px; padding: 6px 2px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px;"
+                            oninput="
+                                const fis = parseInt(this.value) || 0;
+                                const sys = parseInt(document.getElementById('sys-${index}').innerText);
+                                const diff = fis - sys;
+                                const elDiff = document.getElementById('diff-${index}');
+                                elDiff.innerText = diff > 0 ? '+' + diff : diff;
+                                elDiff.style.color = diff === 0 ? '#10b981' : (diff < 0 ? '#ef4444' : '#3b82f6');
+                            "
+                        >
+                    </td>
+                    <td style="text-align: center; padding: 8px; font-weight: 900; font-size: 13px;" id="diff-${index}">0</td>
+                </tr>
+            `;
+        });
+
+        tablaHtml += `</tbody></table></div>`;
+
+        Swal.fire({
+            title: '📋 Auditoría de Stock',
+            html: tablaHtml,
+            width: window.innerWidth < 640 ? '98%' : '550px',
+            showCancelButton: true,
+            confirmButtonText: '🖨️ IMPRIMIR INFORME',
+            cancelButtonText: 'CERRAR',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b',
+            reverseButtons: true,
+            preConfirm: () => {
+                imprimirConteo();
+                return false;
+            }
+        });
+    };
+
     const manejarAjuste = async (item, tipo) => {
         const { value: formValues } = await Swal.fire({
             title: tipo === 'sumar' ? 'Entrada de Stock' : 'Salida de Stock',
@@ -108,9 +192,7 @@ const Inventario = () => {
                     Swal.showValidationMessage('Ingresa una cantidad válida');
                     return false;
                 }
-                return {
-                    cantidad: parseInt(cant)
-                };
+                return { cantidad: parseInt(cant) };
             }
         });
 
@@ -124,15 +206,7 @@ const Inventario = () => {
                 return Swal.fire('Error', 'Stock insuficiente', 'error');
             }
 
-            // Enviamos null permanentemente para ahorrar espacio en Supabase
-            await actualizarStock(
-                item.codigo_id,
-                nuevoTotal,
-                cantidad,
-                tipo === 'sumar' ? 'entrada' : 'salida',
-                item.descripcion,
-                null 
-            );
+            await actualizarStock(item.codigo_id, nuevoTotal, cantidad, tipo === 'sumar' ? 'entrada' : 'salida', item.descripcion, null);
         }
     };
 
@@ -168,21 +242,9 @@ const Inventario = () => {
     return (
         <div style={{ padding: '10px', maxWidth: '100%', width: '1000px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
             
-            <div style={{ 
-                marginBottom: '20px', background: '#f1f5f9', padding: '12px', borderRadius: '15px',
-                display: 'flex', flexDirection: 'row',
-                justifyContent: 'space-between', alignItems: 'center', gap: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-            }}>
-                <div style={{ fontWeight: 'bold', color: THEME.colors.text, fontSize: '12px' }}>
-                    👤 {rol ? rol.toUpperCase().replace('_', ' ') : '...'}
-                </div>
-                
-                <button 
-                    onClick={() => supabase.auth.signOut()} 
-                    style={{ background: THEME.colors.danger, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                    SALIR
-                </button>
+            <div style={{ marginBottom: '20px', background: '#f1f5f9', padding: '12px', borderRadius: '15px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontWeight: 'bold', color: THEME.colors.text, fontSize: '12px' }}>👤 {rol ? rol.toUpperCase().replace('_', ' ') : '...'}</div>
+                <button onClick={() => supabase.auth.signOut()} style={{ background: THEME.colors.danger, color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>SALIR</button>
             </div>
 
             <h2 style={{ textAlign: 'center', color: THEME.colors.dark, marginBottom: '20px', fontSize: '20px' }}>📦 Sistema Bodega</h2>
@@ -208,20 +270,21 @@ const Inventario = () => {
 
             {vista === 'sacos' && (
                 <div style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', gap: '10px' }}>
-                        {esAdminCualquiera ? (
-                            <button onClick={() => setVista('menu')} style={obtenerEstiloBoton(false, '#edf2f7', true)}>
-                                ⬅ MENÚ PRINCIPAL
-                            </button>
-                        ) : <div />}
-                        
+                    <div style={{ display: 'flex', flexDirection: window.innerWidth < 640 ? 'column' : 'row', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', gap: '10px' }}>
+                        <div style={{ display: 'flex', gap: '8px', width: window.innerWidth < 640 ? '100%' : 'auto', justifyContent: 'center' }}>
+                            {esAdminCualquiera && <button onClick={() => setVista('menu')} style={obtenerEstiloBoton(false, '#edf2f7', true)}>⬅ MENÚ</button>}
+                            <button onClick={abrirModalConteo} style={obtenerEstiloBoton(false, '#10b981')}>📋 CONTEO</button>
+                        </div>
                         {esAdminCualquiera && (
-                            <button onClick={() => setMostrarForm(!mostrarForm)} style={obtenerEstiloBoton(false, AZUL_CORPORATIVO)}>
-                                {mostrarForm ? '✖' : '➕ SACO'}
-                            </button>
+                            <div style={{ width: window.innerWidth < 640 ? '100%' : 'auto' }}>
+                                <button onClick={() => setMostrarForm(!mostrarForm)} style={obtenerEstiloBoton(false, AZUL_CORPORATIVO)}>
+                                    {mostrarForm ? '✖ CANCELAR' : '➕ NUEVO SACO'}
+                                </button>
+                            </div>
                         )}
                     </div>
 
+                    {/* BLOQUE RESTAURADO: Formulario para agregar sacos */}
                     {mostrarForm && esAdminCualquiera && (
                         <div style={{ background: '#f7fafc', padding: '15px', borderRadius: '15px', marginBottom: '15px', border: `1px solid ${THEME.colors.border}` }}>
                             <FormularioSaco 
