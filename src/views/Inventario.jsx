@@ -111,14 +111,14 @@ const Inventario = () => {
 
     const abrirModalConteo = () => {
         let tablaHtml = `
-            <div id="tabla-conteo-imprimir" style="width: 100%; overflow-x: auto;">
-                <table style="width: 100%; min-width: 300px; border-collapse: collapse; font-family: sans-serif;">
+            <div id="tabla-conteo-imprimir" style="width: 100%; overflow-x: auto; padding: 5px;">
+                <table style="width: 100%; min-width: 340px; border-collapse: collapse; font-family: sans-serif; table-layout: fixed;">
                     <thead>
                         <tr style="border-bottom: 2px solid #eee; font-size: 10px; color: #666;">
-                            <th style="text-align: left; padding: 8px; width: 45%;">PRODUCTO</th>
-                            <th style="text-align: center; padding: 8px; width: 15%;">SIST.</th>
-                            <th style="text-align: center; padding: 8px; width: 25%;">FÍSICO</th>
-                            <th style="text-align: center; padding: 8px; width: 15%;">DIF.</th>
+                            <th style="text-align: left; padding: 8px; width: auto;">PRODUCTO</th>
+                            <th style="text-align: center; padding: 8px; width: 60px;">SIST.</th>
+                            <th style="text-align: center; padding: 8px; width: 80px;">FÍSICO</th>
+                            <th style="text-align: center; padding: 8px; width: 50px;">DIF.</th>
                         </tr>
                     </thead>
                     <tbody style="font-size: 12px;">
@@ -127,16 +127,16 @@ const Inventario = () => {
         listaLocal.forEach((item, index) => {
             tablaHtml += `
                 <tr style="border-bottom: 1px solid #f4f4f4;">
-                    <td style="text-align: left; padding: 10px 8px; font-weight: 800; color: #333; line-height: 1.1;">
+                    <td style="text-align: left; padding: 10px 4px; font-weight: 800; color: #333; line-height: 1.1; word-wrap: break-word;">
                         ${item.descripcion.toUpperCase()}
                     </td>
-                    <td style="text-align: center; padding: 8px; font-weight: bold; color: #666;" id="sys-${index}">
+                    <td style="text-align: center; padding: 8px; font-weight: bold; color: #666; white-space: nowrap;" id="sys-${index}">
                         ${item.stock_total}
                     </td>
                     <td style="text-align: center; padding: 8px;">
                         <input type="number" id="fis-${index}" 
                             placeholder="0"
-                            style="width: 55px; padding: 6px 2px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px;"
+                            style="width: 65px; padding: 6px 2px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px;"
                             oninput="
                                 const fis = parseInt(this.value) || 0;
                                 const sys = parseInt(document.getElementById('sys-${index}').innerText);
@@ -147,7 +147,7 @@ const Inventario = () => {
                             "
                         >
                     </td>
-                    <td style="text-align: center; padding: 8px; font-weight: 900; font-size: 13px;" id="diff-${index}">0</td>
+                    <td style="text-align: center; padding: 8px; font-weight: 900; font-size: 13px; white-space: nowrap;" id="diff-${index}">0</td>
                 </tr>
             `;
         });
@@ -157,7 +157,7 @@ const Inventario = () => {
         Swal.fire({
             title: '📋 Auditoría de Stock',
             html: tablaHtml,
-            width: window.innerWidth < 640 ? '98%' : '550px',
+            width: window.innerWidth < 640 ? '98%' : '600px',
             showCancelButton: true,
             confirmButtonText: '🖨️ IMPRIMIR INFORME',
             cancelButtonText: 'CERRAR',
@@ -284,7 +284,6 @@ const Inventario = () => {
                         )}
                     </div>
 
-                    {/* BLOQUE RESTAURADO: Formulario para agregar sacos */}
                     {mostrarForm && esAdminCualquiera && (
                         <div style={{ background: '#f7fafc', padding: '15px', borderRadius: '15px', marginBottom: '15px', border: `1px solid ${THEME.colors.border}` }}>
                             <FormularioSaco 
