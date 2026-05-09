@@ -87,9 +87,14 @@ const Inventario = () => {
         checkRol();
     }, []);
 
-    const imprimirConteo = () => {
-        const contenido = document.getElementById('tabla-conteo-imprimir').cloneNode(true);
+    // NUEVA FUNCIÓN: DESCARGAR INFORME EN LUGAR DE IMPRIMIR
+    const descargarInformeConteo = () => {
+        const contenidoOriginal = document.getElementById('tabla-conteo-imprimir');
+        if (!contenidoOriginal) return;
+
+        const contenido = contenidoOriginal.cloneNode(true);
         const inputs = contenido.querySelectorAll('input');
+        
         inputs.forEach(input => {
             const valor = input.value || "0";
             const span = document.createElement('span');
@@ -97,16 +102,44 @@ const Inventario = () => {
             input.parentNode.replaceChild(span, input);
         });
 
-        const ventana = window.open('', '', 'height=600,width=800');
-        ventana.document.write('<html><head><title>Informe de Auditoría - Bodega</title>');
-        ventana.document.write('<style>table { width: 100%; border-collapse: collapse; font-family: sans-serif; } th, td { border: 1px solid #ddd; padding: 12px; text-align: center; } th { background-color: #f2f2f2; } h2 { text-align: center; font-family: sans-serif; }</style>');
-        ventana.document.write('</head><body>');
-        ventana.document.write('<h2>REPORTE DE CONTEO FÍSICO</h2>');
-        ventana.document.write('<p style="text-align:center">Fecha: ' + new Date().toLocaleString() + '</p>');
-        ventana.document.write(contenido.innerHTML);
-        ventana.document.write('</body></html>');
-        ventana.document.close();
-        ventana.print();
+        const fechaActual = new Date().toLocaleString();
+        const htmlDoc = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Informe de Auditoría</title>
+                <style>
+                    body { font-family: sans-serif; padding: 20px; color: #333; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+                    th { background-color: #2563eb; color: white; }
+                    tr:nth-child(even) { background-color: #f9fafb; }
+                    h2 { text-align: center; color: #1e40af; }
+                    .info { text-align: center; margin-bottom: 20px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <h2>REPORTE DE CONTEO FÍSICO DE BODEGA</h2>
+                <div class="info">Generado el: ${fechaActual}</div>
+                ${contenido.innerHTML}
+                <div style="margin-top: 50px; display: flex; justify-content: space-around;">
+                    <div style="border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px;">Firma Encargado</div>
+                    <div style="border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px;">Firma Auditor</div>
+                </div>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([htmlDoc], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Informe_Conteo_${new Date().toISOString().split('T')[0]}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     const abrirModalConteo = () => {
@@ -159,13 +192,13 @@ const Inventario = () => {
             html: tablaHtml,
             width: window.innerWidth < 640 ? '98%' : '600px',
             showCancelButton: true,
-            confirmButtonText: '🖨️ IMPRIMIR INFORME',
+            confirmButtonText: '💾 DESCARGAR INFORME',
             cancelButtonText: 'CERRAR',
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: '#2563eb',
             cancelButtonColor: '#64748b',
             reverseButtons: true,
             preConfirm: () => {
-                imprimirConteo();
+                descargarInformeConteo();
                 return false;
             }
         });
